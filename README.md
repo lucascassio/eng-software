@@ -9,10 +9,10 @@ Este projeto tem como objetivo facilitar a troca e o empréstimo de livros entre
 - ✅ Controle de status dos livros (disponível, emprestado, reservado)  
 
 ## 👥 Equipe  
-- **Lucas Cassio** - Desenvolvimento Full Stack  
-- **Lucas Araujo** - Desenvolvimento Full Stack  
-- **Artur Fonseca** - Desenvolvimento Full Stack  
-- **Clara Tavares** - Desenvolvimento Full Stack  
+- **Artur Fonseca** - Desenvolvimento Full Stack
+- **Clara Tavares** - Desenvolvimento Full Stack
+- **Lucas Araujo** - Desenvolvimento Full Stack 
+- **Lucas Cassio** - Desenvolvimento Full Stack   
 
 Todos os membros terão a oportunidade de experimentar tanto o backend quanto o frontend.  
 
