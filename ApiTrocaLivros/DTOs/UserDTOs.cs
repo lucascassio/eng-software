@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ApiTrocaLivros.DTOs;
 public class UserDTOs
 {
-    public class CreateUserDTO
+    public class UserRequestDTO
     {
         [Required]
         public string Name { get; set; }

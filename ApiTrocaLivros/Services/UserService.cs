@@ -15,10 +15,10 @@ namespace ApiTrocaLivros.Services
             _context = context;
         }
 
-        public async Task<UserDTOs.UserResponseDTO> Create(UserDTOs.CreateUserDTO dto)
+        public async Task<UserDTOs.UserResponseDTO> Create(UserDTOs.UserRequestDTO dto)
         {
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-                throw new Exception("Email já está em uso");
+                throw new InvalidOperationException("Email já está em uso");
 
             var user = new User
             {
@@ -49,26 +49,41 @@ namespace ApiTrocaLivros.Services
 
         public async Task Update(int id, UserDTOs.UpdateUserDTO dto)
         {
+            // 1. Validação de existência
             var user = await _context.Users.FindAsync(id);
-            if (user == null) throw new Exception("Usuário não encontrado");
+            if (user == null) 
+                throw new KeyNotFoundException($"Usuário com ID {id} não encontrado");
 
+            // 2. Validação de e-mail duplicado
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email && u.Id != id))
-                throw new Exception("Email já está em uso");
+                throw new InvalidOperationException($"O email {dto.Email} já está em uso por outro usuário");
 
+            // 3. Validação de modelo
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                throw new ArgumentException("Nome não pode ser vazio", nameof(dto.Name));
+    
+            // 4. Atualização
             user.Name = dto.Name;
             user.Email = dto.Email;
             user.Course = dto.Course;
 
             await _context.SaveChangesAsync();
         }
-
         public async Task Delete(int id)
         {
             var user = await _context.Users.FindAsync(id);
-            if (user == null) throw new Exception("Usuário não encontrado");
+            if (user == null)
+                throw new KeyNotFoundException($"Usuário com ID {id} não encontrado");
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("Falha ao deletar usuário no banco de dados", ex);
+            }
         }
 
         private static UserDTOs.UserResponseDTO MapToDTO(User user)

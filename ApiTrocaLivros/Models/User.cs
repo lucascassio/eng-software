@@ -1,9 +1,11 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ApiTrocaLivros.Models
 {
+    [Table("users")]
     public class User
     {
         [Key]
@@ -22,7 +24,7 @@ namespace ApiTrocaLivros.Models
         [Required]
         [StringLength(50)]
         public string Course { get; set; }
-        
+            
         [Required]
         [StringLength(255)]
         public string Password { get; set; }

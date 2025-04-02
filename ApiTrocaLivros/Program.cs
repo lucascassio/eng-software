@@ -1,22 +1,27 @@
 using Microsoft.EntityFrameworkCore;
 using ApiTrocaLivros.Data;
-using ApiTrocaLivros.Models;
+using ApiTrocaLivros.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddOpenApi();
+builder.Services.AddControllers();
 
-// Add database configuration
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("PostgreSQL")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
+
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
+app.MapControllers();
 app.Run();

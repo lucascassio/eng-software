@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ApiTrocaLivros")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5fe253235e51bdcb185bfb8182212d8b8b64b041")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+38ddd9c5e2194fed333ac5958fa041770925b499")]
 [assembly: System.Reflection.AssemblyProductAttribute("ApiTrocaLivros")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ApiTrocaLivros")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
