@@ -86,6 +86,25 @@ namespace ApiTrocaLivros.Services
             }
         }
 
+        public async Task<User> findByEmail(string email)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return user;
+        }
+        
+        public async Task ResetPassword(string email, string newPassword)
+        {
+            var user = await findByEmail(email);
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado.");
+            
+            user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+
+
         private static UserDTOs.UserResponseDTO MapToDTO(User user)
         {
             return new UserDTOs.UserResponseDTO
