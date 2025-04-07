@@ -61,34 +61,33 @@ namespace ApiTrocaLivros.Controllers
         }
         
         [HttpPatch("reset-password")]
-        public async Task<IActionResult> ResetPassword([FromBody] UserDTOs.ResetPasswordDTO dto)
+        public async Task<IActionResult> ResetPassword([FromBody] UserDTOs.ResetPasswordWithOldDTO dto)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
-                
+
                 if (dto.NewPassword != dto.ConfirmNewPassword)
                     return BadRequest("As senhas não coincidem.");
-                
-                await _userService.ResetPassword(dto.email, dto.NewPassword);
+
+                await _userService.ResetPassword(dto.Email, dto.CurrentPassword, dto.NewPassword);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
             }
-            catch (ArgumentException ex)
+            catch (UnauthorizedAccessException ex)
             {
-                return BadRequest(ex.Message);
+                return Unauthorized(ex.Message);
             }
             catch (Exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno no servidor");
             }
         }
-
-
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserDTOs.UpdateUserDTO dto)
         {
