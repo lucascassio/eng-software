@@ -38,4 +38,12 @@ public class UserDTOs
         public DateTime RegistrationDate { get; set; }
         public bool IsActive { get; set; }
     }
+    
+    public class ResetPasswordWithOldDTO
+    {
+        public string Email { get; set; }
+        public string CurrentPassword { get; set; }
+        public string NewPassword { get; set; }
+        public string ConfirmNewPassword { get; set; }
+    }
 }

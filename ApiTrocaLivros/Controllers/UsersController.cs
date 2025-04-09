@@ -59,7 +59,35 @@ namespace ApiTrocaLivros.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Ocorreu um erro interno");
             }
         }
+        
+        [HttpPatch("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] UserDTOs.ResetPasswordWithOldDTO dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
+                if (dto.NewPassword != dto.ConfirmNewPassword)
+                    return BadRequest("As senhas não coincidem.");
+
+                await _userService.ResetPassword(dto.Email, dto.CurrentPassword, dto.NewPassword);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno no servidor");
+            }
+        }
+        
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UserDTOs.UpdateUserDTO dto)
         {
@@ -93,8 +121,8 @@ namespace ApiTrocaLivros.Controllers
                 // Log the unexpected error
                 return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno no servidor");
             }
-        }
-
+    }
+        
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
