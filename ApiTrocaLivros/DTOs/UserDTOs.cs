@@ -46,4 +46,10 @@ public class UserDTOs
         public string NewPassword { get; set; }
         public string ConfirmNewPassword { get; set; }
     }
+    
+    public class LoginRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
 }

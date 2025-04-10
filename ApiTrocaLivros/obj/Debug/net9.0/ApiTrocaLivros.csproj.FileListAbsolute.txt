@@ -168,3 +168,5 @@
 /Users/lucascassio/Documents/code/eng-software/ApiTrocaLivros/bin/Debug/net9.0/Swashbuckle.AspNetCore.Swagger.dll
 /Users/lucascassio/Documents/code/eng-software/ApiTrocaLivros/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerGen.dll
 /Users/lucascassio/Documents/code/eng-software/ApiTrocaLivros/bin/Debug/net9.0/Swashbuckle.AspNetCore.SwaggerUI.dll
+/Users/lucascassio/Documents/code/eng-software/ApiTrocaLivros/bin/Debug/net9.0/DotNetEnv.dll
+/Users/lucascassio/Documents/code/eng-software/ApiTrocaLivros/bin/Debug/net9.0/Sprache.dll

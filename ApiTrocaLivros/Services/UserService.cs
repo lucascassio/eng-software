@@ -85,6 +85,18 @@ namespace ApiTrocaLivros.Services
                 throw new Exception("Falha ao deletar usuário no banco de dados", ex);
             }
         }
+        
+        public async Task<UserDTOs.UserResponseDTO?> Authenticate(string email, string password)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
+                return null;
+            }
+
+            return MapToDTO(user);
+        }
 
         public async Task<User> findByEmail(string email)
         {

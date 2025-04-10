@@ -3,6 +3,7 @@ using ApiTrocaLivros.DTOs;
 using ApiTrocaLivros.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ApiTrocaLivros.Security;
 
 namespace ApiTrocaLivros.Controllers
 {
@@ -11,12 +12,23 @@ namespace ApiTrocaLivros.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly JwtService _jwtService;
 
-        public UsersController(UserService userService)
+        public UsersController(UserService userService, JwtService jwtService)
         {
             _userService = userService;
+            _jwtService = jwtService;
         }
 
+        [HttpPost("authenticate")] // Mudar para POST que é o mais adequado para autenticação
+        public async Task<IActionResult> Authenticate([FromBody] UserDTOs.LoginRequest request)
+        {
+            var user = await _userService.Authenticate(request.Email, request.Password);
+            return user == null ? 
+                Unauthorized("Username or password is incorrect.") : 
+                Ok(_jwtService.GenerateToken(user));
+        }
+            
         [HttpGet]
         public async Task<IActionResult> Getall()
         {
@@ -36,9 +48,6 @@ namespace ApiTrocaLivros.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-
                 var createdUser = await _userService.Create(dto);
         
                 return CreatedAtAction(
