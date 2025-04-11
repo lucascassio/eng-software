@@ -5,7 +5,6 @@ Este projeto tem como objetivo facilitar a troca e o empréstimo de livros entre
 
 - 📖 Cadastro de livros disponíveis para troca ou empréstimo  
 - 🔍 Busca por disciplina, autor ou título  
-- 💬 Sistema de mensagens entre usuários interessados  
 - ✅ Controle de status dos livros (disponível, emprestado, reservado)  
 
 ## 👥 Equipe  
