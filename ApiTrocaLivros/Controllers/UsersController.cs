@@ -4,6 +4,7 @@ using ApiTrocaLivros.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiTrocaLivros.Security;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiTrocaLivros.Controllers
 {
@@ -20,7 +21,7 @@ namespace ApiTrocaLivros.Controllers
             _jwtService = jwtService;
         }
 
-        [HttpPost("authenticate")] // Mudar para POST que é o mais adequado para autenticação
+        [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate([FromBody] UserDTOs.LoginRequest request)
         {
             var user = await _userService.Authenticate(request.Email, request.Password);
@@ -30,6 +31,7 @@ namespace ApiTrocaLivros.Controllers
         }
             
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Getall()
         {
             var users = await _userService.GetAll();
@@ -37,6 +39,7 @@ namespace ApiTrocaLivros.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetUserById(int id)
         {
             var user = await _userService.Get(id);
@@ -44,6 +47,7 @@ namespace ApiTrocaLivros.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateUser(UserDTOs.UserRequestDTO dto)
         {
             try
@@ -98,6 +102,7 @@ namespace ApiTrocaLivros.Controllers
         }
         
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> UpdateUser(int id, UserDTOs.UpdateUserDTO dto)
         {
             try
@@ -130,9 +135,10 @@ namespace ApiTrocaLivros.Controllers
                 // Log the unexpected error
                 return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno no servidor");
             }
-    }
+        }   
         
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteUser(int id)
         {
             try

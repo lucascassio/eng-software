@@ -85,6 +85,24 @@ namespace ApiTrocaLivros.Security
                 return null;
             }
         }
+        
+        public void ConfigureJwtAuthentication(IServiceCollection services)
+        {
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = _issuer,
+                        ValidateAudience = true,
+                        ValidAudience = _audience,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = _securityKey
+                    };
+                });
+        }
     }
 
     public static class ClaimsExtensions
