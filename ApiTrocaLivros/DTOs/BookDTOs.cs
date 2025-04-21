@@ -30,6 +30,29 @@ public class BookDTOs
         public string? Sinopse { get; set; }
     }
 
+    public class BookUpdateRequestDTO
+    {
+        [StringLength(50)]
+        public string? Title { get; set; }
+        
+        [StringLength(50)]
+        public string? Author { get; set; }
+        
+        [StringLength(50)]
+        public string? Genre { get; set; }
+        
+        [StringLength(50)]
+        public string? Publisher { get; set; }
+        
+        public int? Pages { get; set; }
+        
+        public int? Year { get; set; }
+        
+        public string? Sinopse { get; set; }
+        
+        public bool? IsAvailable { get; set; }
+    }
+
     public class BookResponseDTO
     {
         public int BookId { get; set; }
