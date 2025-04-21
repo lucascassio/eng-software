@@ -57,8 +57,8 @@ namespace ApiTrocaLivros.Migrations
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("Sinopse")
-                        .HasColumnType("integer");
+                    b.Property<string>("Sinopse")
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
