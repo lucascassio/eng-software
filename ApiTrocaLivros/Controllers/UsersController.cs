@@ -1,10 +1,12 @@
 using ApiTrocaLivros.Data;
 using ApiTrocaLivros.DTOs;
+using ApiTrocaLivros.Models;
 using ApiTrocaLivros.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiTrocaLivros.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace ApiTrocaLivros.Controllers
 {
@@ -14,11 +16,14 @@ namespace ApiTrocaLivros.Controllers
     {
         private readonly UserService _userService;
         private readonly JwtService _jwtService;
+        private readonly AppDbContext _context;
 
-        public UsersController(UserService userService, JwtService jwtService)
+
+        public UsersController(UserService userService, JwtService jwtService, AppDbContext context)
         {
             _userService = userService;
             _jwtService = jwtService;
+            _context = context;
         }
 
         [HttpPost("authenticate")]
@@ -28,6 +33,23 @@ namespace ApiTrocaLivros.Controllers
             return user == null ? 
                 Unauthorized("Username or password is incorrect.") : 
                 Ok(_jwtService.GenerateToken(user));
+        }
+        
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            // Extrai o JTI (Token ID) do JWT
+            var jti = User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            if (string.IsNullOrEmpty(jti))
+                return BadRequest("Token inválido ou sem JTI.");
+
+            // Adiciona o JTI na tabela de tokens revogados
+            _context.BlacklistedTokens.Add(new BlacklistedToken { Jti = jti });
+            await _context.SaveChangesAsync();
+
+            // O front deve também remover o token localmente
+            return Ok(new { message = "Logout realizado com sucesso." });
         }
             
         [HttpGet]

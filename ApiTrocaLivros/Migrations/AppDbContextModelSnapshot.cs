@@ -22,6 +22,20 @@ namespace ApiTrocaLivros.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ApiTrocaLivros.Models.BlacklistedToken", b =>
+                {
+                    b.Property<string>("Jti")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Jti");
+
+                    b.ToTable("blacklisted_tokens");
+                });
+
             modelBuilder.Entity("ApiTrocaLivros.Models.Book", b =>
                 {
                     b.Property<int>("BookId")
@@ -75,6 +89,43 @@ namespace ApiTrocaLivros.Migrations
                     b.ToTable("books");
                 });
 
+            modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
+                {
+                    b.Property<int>("TradeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TradeID"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("OfferedBookId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequesterId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetBookId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("TradeID");
+
+                    b.HasIndex("OfferedBookId");
+
+                    b.HasIndex("RequesterId");
+
+                    b.HasIndex("TargetBookId");
+
+                    b.ToTable("trade");
+                });
+
             modelBuilder.Entity("ApiTrocaLivros.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -123,6 +174,33 @@ namespace ApiTrocaLivros.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
+                {
+                    b.HasOne("ApiTrocaLivros.Models.Book", "OfferedBook")
+                        .WithMany()
+                        .HasForeignKey("OfferedBookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiTrocaLivros.Models.User", "Requester")
+                        .WithMany()
+                        .HasForeignKey("RequesterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiTrocaLivros.Models.Book", "TargetBook")
+                        .WithMany()
+                        .HasForeignKey("TargetBookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OfferedBook");
+
+                    b.Navigation("Requester");
+
+                    b.Navigation("TargetBook");
                 });
 #pragma warning restore 612, 618
         }
