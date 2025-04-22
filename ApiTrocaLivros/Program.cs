@@ -3,6 +3,7 @@ using ApiTrocaLivros.Data;
 using ApiTrocaLivros.Services;
 using ApiTrocaLivros.Security;
 using System.Text;
+using ApiTrocaLivros.DTOs;
 using Microsoft.IdentityModel.Tokens;
 using DotNetEnv;
 
@@ -20,6 +21,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registro dos serviços    
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<BookService>();
+builder.Services.AddHttpContextAccessor();
+
+var jwtService = new JwtService();
+jwtService.ConfigureJwtAuthentication(builder.Services);
+
 
 var app = builder.Build();
 
@@ -28,9 +35,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-var jwtService = new JwtService();
-jwtService.ConfigureJwtAuthentication(builder.Services);
 
 app.UseAuthentication();
 app.UseAuthorization();

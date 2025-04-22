@@ -47,7 +47,6 @@ namespace ApiTrocaLivros.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> CreateUser(UserDTOs.UserRequestDTO dto)
         {
             try
