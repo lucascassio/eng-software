@@ -114,6 +114,18 @@ namespace ApiTrocaLivros.Security
                 };
             });
         }
+        
+        public int GetUserIdFromToken(ClaimsPrincipal userPrincipal)
+        {
+            var userIdClaim = userPrincipal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+    
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            {
+                throw new UnauthorizedAccessException("Token inválido ou sem ID de usuário.");
+            }
+    
+            return userId;
+        }
 
         public UserDTOs.UserResponseDTO? ExtractUserFromToken(string token)
         {
@@ -156,5 +168,7 @@ namespace ApiTrocaLivros.Security
                 IsActive         = bool.Parse(list.First(c => c.Type == "isActive").Value)
             };
         }
+        
+        
     }
 }

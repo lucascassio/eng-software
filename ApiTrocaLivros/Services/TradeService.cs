@@ -44,32 +44,22 @@ namespace ApiTrocaLivros.Services
         {
             var requesterId = GetCurrentUserId();
 
-            // 1) Busca e valida existência
             var offeredBook = await _context.Books.FindAsync(dto.OfferedBookId)
-                              ?? throw new KeyNotFoundException(
-                                  $"Livro oferecido com ID '{dto.OfferedBookId}' não encontrado.");
-            var targetBook  = await _context.Books.FindAsync(dto.TargetBookId)
-                              ?? throw new KeyNotFoundException(
-                                  $"Livro alvo com ID '{dto.TargetBookId}' não encontrado.");
+                              ?? throw new KeyNotFoundException($"Livro oferecido com ID '{dto.OfferedBookId}' não encontrado.");
+            var targetBook = await _context.Books.FindAsync(dto.TargetBookId)
+                             ?? throw new KeyNotFoundException($"Livro alvo com ID '{dto.TargetBookId}' não encontrado.");
 
-            // 2) Só quem é dono pode ofertar
             if (offeredBook.OwnerId != requesterId)
-                throw new UnauthorizedAccessException(
-                    "Você não tem permissão para ofertar esse livro.");
+                throw new UnauthorizedAccessException("Você não tem permissão para ofertar esse livro.");
 
-            // 3) Bloqueia se qualquer livro já não estiver disponível
             if (!offeredBook.IsAvaiable)
-                throw new InvalidOperationException(
-                    $"O livro ofertado '{offeredBook.Title}' não está disponível para troca.");
+                throw new InvalidOperationException($"O livro ofertado '{offeredBook.Title}' não está disponível para troca.");
             if (!targetBook.IsAvaiable)
-                throw new InvalidOperationException(
-                    $"O livro alvo '{targetBook.Title}' não está disponível para troca.");
+                throw new InvalidOperationException($"O livro alvo '{targetBook.Title}' não está disponível para troca.");
 
-            // 4) Impede trocar o mesmo livro
             if (dto.OfferedBookId == dto.TargetBookId)
                 throw new ArgumentException("Não é possível trocar o mesmo livro.");
 
-            // 5) Cria a troca
             var trade = new Trade
             {
                 OfferedBookId = dto.OfferedBookId,
@@ -82,8 +72,16 @@ namespace ApiTrocaLivros.Services
             _context.Trades.Add(trade);
             await _context.SaveChangesAsync();
 
-            return MapToDTO(trade);
+            // Corrigido: recarrega com includes antes de mapear
+            var fullTrade = await _context.Trades
+                .Include(t => t.OfferedBook)
+                .Include(t => t.TargetBook)
+                .Include(t => t.Requester)
+                .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID);
+
+            return MapToDTO(fullTrade!);
         }
+
         
         public async Task<TradeDTOs.TradeResponseDTO> Get(int id)
         {

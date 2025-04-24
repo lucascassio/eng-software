@@ -17,6 +17,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<TradeService>();
+builder.Services.AddScoped<RatingService>();
 
 // 3) Configura autenticação JWT
 var jwtService = new JwtService();
