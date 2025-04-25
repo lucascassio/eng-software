@@ -1,0 +1,30 @@
+// src/components/Header/styles.module.scss
+.header {
+    background-color: #00aaff;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .nav {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .link {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+  
+    &:hover {
+      color: white;
+    }
+  }
+  
+  .activeLink {
+    @extend .link;
+    color: white;
+    border-bottom: 2px solid white;
+    padding-bottom: 0.25rem;
+  }

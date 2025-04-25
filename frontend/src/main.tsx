@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/login';
 import RecoverPassword from './pages/recoverPassword';
 import Register from './pages/register';
+import Feed from './pages/feed';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -12,6 +13,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<Login />} />
         <Route path="/recover-password" element={<RecoverPassword />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/feed" element={<Feed />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

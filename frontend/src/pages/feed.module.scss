@@ -1,0 +1,32 @@
+// src/pages/Feed/styles.module.scss
+.main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .title {
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .error {
+    color: #e74c3c;
+    text-align: center;
+  }
+  
+  .booksGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+  
+  @media (max-width: 768px) {
+    .booksGrid {
+      grid-template-columns: 1fr;
+    }
+  }
