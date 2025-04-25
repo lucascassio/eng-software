@@ -3,6 +3,7 @@ using System;
 using ApiTrocaLivros.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiTrocaLivros.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250421214621_Trades")]
+    partial class Trades
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,20 +24,6 @@ namespace ApiTrocaLivros.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.BlacklistedToken", b =>
-                {
-                    b.Property<string>("Jti")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("RevokedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Jti");
-
-                    b.ToTable("blacklisted_tokens");
-                });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Book", b =>
                 {
@@ -87,45 +76,6 @@ namespace ApiTrocaLivros.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("books");
-                });
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
-                {
-                    b.Property<int>("RatingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RatingId"));
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("EvaluatedUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("EvaluatorUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("RatingDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TradeId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("RatingId");
-
-                    b.HasIndex("EvaluatedUserId");
-
-                    b.HasIndex("EvaluatorUserId");
-
-                    b.HasIndex("TradeId");
-
-                    b.ToTable("ratings");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
@@ -213,33 +163,6 @@ namespace ApiTrocaLivros.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
-                {
-                    b.HasOne("ApiTrocaLivros.Models.User", "EvaluatedUser")
-                        .WithMany()
-                        .HasForeignKey("EvaluatedUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiTrocaLivros.Models.User", "EvaluatorUser")
-                        .WithMany()
-                        .HasForeignKey("EvaluatorUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiTrocaLivros.Models.Trade", "Trade")
-                        .WithMany()
-                        .HasForeignKey("TradeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EvaluatedUser");
-
-                    b.Navigation("EvaluatorUser");
-
-                    b.Navigation("Trade");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
