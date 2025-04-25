@@ -22,7 +22,7 @@ const Login = () => {
         Password: password
       });
       
-      navigate('/');
+      navigate('/feed');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Credenciais inválidas');
     } finally {
