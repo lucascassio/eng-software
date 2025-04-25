@@ -10,8 +10,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/recuperar-senha" element={<RecoverPassword />} />
-        <Route path="/cadastro" element={<Register />} />
+        <Route path="/recover-password" element={<RecoverPassword />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

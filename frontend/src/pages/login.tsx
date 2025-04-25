@@ -21,7 +21,6 @@ const Login = () => {
         Email: email,
         Password: password
       });
-    
       
       navigate('/');
     } catch (err) {
@@ -59,6 +58,15 @@ const Login = () => {
         <button type="submit" disabled={isLoading}>
           {isLoading ? 'Carregando...' : 'Entrar'}
         </button>
+
+        <div className="links">
+          <p className="cadastrar-link" onClick={() => !isLoading && navigate('/register')}>
+            Criar conta
+          </p>
+          <p className="recuperar-link" onClick={() => !isLoading && navigate('/recover-password')}>
+            Esqueci minha senha
+          </p>
+        </div>
       </form>
     </div>
   );

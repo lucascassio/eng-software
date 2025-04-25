@@ -19,6 +19,7 @@ export const AuthService = {
   async register(userData: RegisterData) {
     try {
       const response = await axios.post(`${API_BASE_URL}/users`, userData);
+      console.log('Usuário cadastrado com sucesso:', response.data);
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

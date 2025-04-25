@@ -29,7 +29,7 @@ const Register = () => {
         Password: password
       });
       
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido');
     }
