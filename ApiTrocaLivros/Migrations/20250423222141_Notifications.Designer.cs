@@ -3,6 +3,7 @@ using System;
 using ApiTrocaLivros.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiTrocaLivros.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250423222141_Notifications")]
+    partial class Notifications
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,46 +122,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("notifications");  
-                });
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
-                {
-                    b.Property<int>("RatingId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RatingId"));
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("EvaluatedUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("EvaluatorUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("RatingDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TradeId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("RatingId");
-
-                    b.HasIndex("EvaluatedUserId");
-
-                    b.HasIndex("EvaluatorUserId");
-
-                    b.HasIndex("TradeId");
-
-                    b.ToTable("ratings");
+                    b.ToTable("notifications");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
@@ -248,7 +212,6 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("Owner");
                 });
 
-
             modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
                 {
                     b.HasOne("ApiTrocaLivros.Models.Trade", "Trade")
@@ -266,35 +229,6 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("Trade");
 
                     b.Navigation("User");
-                        
-                 });
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
-                {
-                    b.HasOne("ApiTrocaLivros.Models.User", "EvaluatedUser")
-                        .WithMany()
-                        .HasForeignKey("EvaluatedUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiTrocaLivros.Models.User", "EvaluatorUser")
-                        .WithMany()
-                        .HasForeignKey("EvaluatorUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiTrocaLivros.Models.Trade", "Trade")
-                        .WithMany()
-                        .HasForeignKey("TradeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EvaluatedUser");
-
-                    b.Navigation("EvaluatorUser");
-
-                    b.Navigation("Trade");
-
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
