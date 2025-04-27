@@ -17,6 +17,19 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<TradeService>();
+builder.Services.AddScoped<NotificationService>();
+
+// Configuração CORS para permitir o frontend na porta 5173
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:5173") // URL do frontend React
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
 
 // 3) Configura autenticação JWT
 var jwtService = new JwtService();
