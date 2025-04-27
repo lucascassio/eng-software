@@ -22,7 +22,7 @@ namespace ApiTrocaLivros.Controllers
             _bookService = bookService;
             _jwtService = jwtService;
         }
-        
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetBookById(int id)
@@ -41,6 +41,26 @@ namespace ApiTrocaLivros.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
+
+        [HttpGet("user/{userId}")]
+        [Authorize]
+        public async Task<IActionResult> GetBooksByUserId(int userId)
+        {
+            try
+            {
+                var book = await _bookService.GetByUserId(userId);
+                return Ok(book);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
         
         [HttpGet]
         [Authorize]

@@ -135,6 +135,19 @@ namespace ApiTrocaLivros.Services
             return books;
         }
         
+        public async Task<List<BookDTOs.BookResponseDTO>> GetByUserId(int userId)
+        {
+            var books = await _context.Books
+                .Where(b => b.OwnerId == userId)
+                .Select(b => MapToDTO(b))
+                .ToListAsync();
+
+            if (!books.Any())
+                throw new KeyNotFoundException($"Nenhum livro encontrado para o usuário com ID '{userId}'.");
+
+            return books;
+        }
+
         public async Task<List<BookDTOs.BookResponseDTO>> GetAllBooksByYear(int year)
         {
             var all = await _context.Books.ToListAsync();
