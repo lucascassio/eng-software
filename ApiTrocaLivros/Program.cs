@@ -33,6 +33,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<BookService>();
+builder.Services.AddScoped<TradeService>();
 builder.Services.AddHttpContextAccessor();
 
 var jwtService = new JwtService();

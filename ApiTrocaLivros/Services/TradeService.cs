@@ -12,7 +12,6 @@ using ApiTrocaLivros.Functions;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace ApiTrocaLivros.Services
-
 {
     public class TradeService
     {
@@ -174,7 +173,7 @@ namespace ApiTrocaLivros.Services
                         "Você não pode aceitar ou recusar esta troca.");
             }
             // 2) quem pode cancelar ou concluir: só quem fez a solicitação
-            else if (dto.Status is TradeStatus.Canceled or TradeStatus.Completed)
+            else if (dto.Status is TradeStatus.Cancelled or TradeStatus.Completed)
             {
                 if (trade.RequesterId != userId)
                     throw new UnauthorizedAccessException(
@@ -185,7 +184,7 @@ namespace ApiTrocaLivros.Services
             switch (trade.Status)
             {
                 case TradeStatus.Pending:
-                    if (dto.Status is not (TradeStatus.Accepted or TradeStatus.Rejected or TradeStatus.Canceled))
+                    if (dto.Status is not (TradeStatus.Accepted or TradeStatus.Rejected or TradeStatus.Cancelled))
                         throw new InvalidOperationException(
                             $"Não é possível mudar de {trade.Status} para {dto.Status}.");
                     break;

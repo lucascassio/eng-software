@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiTrocaLivros.Models
-
 {
     [Table("trade")]
     public class Trade
@@ -49,7 +48,7 @@ namespace ApiTrocaLivros.Models
         Pending, //0
         Accepted, //1
         Rejected, //2
-        Canceled, //3
+        Cancelled, //3
         Completed //4
     }
 }
