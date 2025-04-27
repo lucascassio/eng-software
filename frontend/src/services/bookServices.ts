@@ -13,6 +13,7 @@ interface Book {
     year: number;
     sinopse?: string;
     isAvailable: boolean;
+    pages: number;
     ownerId: number;
     registrationDate: string;
   }
@@ -72,6 +73,18 @@ export const BookService = {
         throw new Error(error.response?.data || 'Erro ao buscar livros por gênero');
       }
       throw new Error('Erro desconhecido ao buscar livros por gênero');
+    }
+  },
+
+  async getBooksByUserId(userId: number): Promise<Book[]> {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/books/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data || 'Erro ao buscar livros do usuário');
+      }
+      throw new Error('Erro desconhecido ao buscar livros do usuário');
     }
   },
 

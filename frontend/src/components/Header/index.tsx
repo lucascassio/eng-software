@@ -15,7 +15,7 @@ export function Header() {
           Feed de Livros
         </NavLink>
         <NavLink
-          to="/meus-livros"
+          to="/myBooks"
           className={({ isActive }) =>
             isActive ? styles.activeLink : styles.link
           }

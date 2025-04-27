@@ -15,6 +15,7 @@ interface Book {
     year: number;
     sinopse?: string;
     isAvailable: boolean;
+    pages: number;
     ownerId: number;
     registrationDate: string;
   }
