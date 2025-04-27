@@ -3,6 +3,7 @@ using System;
 using ApiTrocaLivros.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiTrocaLivros.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250424231612_AddBlacklistedTokensTable")]
+    partial class AddBlacklistedTokensTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -87,39 +90,6 @@ namespace ApiTrocaLivros.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("books");
-                });
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
-                {
-                    b.Property<int>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NotificationId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("TradeId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("TradeId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("notifications");  
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
@@ -248,27 +218,6 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("Owner");
                 });
 
-
-            modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
-                {
-                    b.HasOne("ApiTrocaLivros.Models.Trade", "Trade")
-                        .WithMany()
-                        .HasForeignKey("TradeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiTrocaLivros.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Trade");
-
-                    b.Navigation("User");
-                        
-                 });
-
             modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
                 {
                     b.HasOne("ApiTrocaLivros.Models.User", "EvaluatedUser")
@@ -294,7 +243,6 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("EvaluatorUser");
 
                     b.Navigation("Trade");
-
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
