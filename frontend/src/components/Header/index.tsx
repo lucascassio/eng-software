@@ -1,4 +1,3 @@
-// src/components/Header/index.tsx
 import { NavLink } from 'react-router-dom';
 import styles from './styles.module.scss';
 
@@ -21,6 +20,14 @@ export function Header() {
           }
         >
           Meus Livros
+        </NavLink>
+        <NavLink
+          to="/myTrades" // <--- adicionado aqui
+          className={({ isActive }) =>
+            isActive ? styles.activeLink : styles.link
+          }
+        >
+          Minhas Trocas
         </NavLink>
       </nav>
     </header>
