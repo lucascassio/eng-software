@@ -89,6 +89,39 @@ namespace ApiTrocaLivros.Migrations
                     b.ToTable("books");
                 });
 
+            modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TradeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("TradeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("notifications");
+                });
+
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
                 {
                     b.Property<int>("TradeID")
@@ -174,6 +207,25 @@ namespace ApiTrocaLivros.Migrations
                         .IsRequired();
 
                     b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
+                {
+                    b.HasOne("ApiTrocaLivros.Models.Trade", "Trade")
+                        .WithMany()
+                        .HasForeignKey("TradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiTrocaLivros.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Trade");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>

@@ -76,7 +76,7 @@ namespace ApiTrocaLivros.Controllers
         {
             try
             {
-                var trades = await _tradeService.GetAllByRequesterId(default);
+                var trades = await _tradeService.GetAllByRequesterId();
                 return Ok(trades);
             }
             catch (KeyNotFoundException ex)
