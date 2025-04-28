@@ -50,27 +50,26 @@ const MyTrades = () => {
   useEffect(() => {
     const fetchTrades = async () => {
       try {
-        setLoading(true);
-        setError('');
-
-        // Faz as duas requisições em paralelo
-        const [myRequests, receivedRequests] = await Promise.all([
-          TradeService.getMyRequests(),
-          TradeService.getReceivedRequests()
-        ]);
-
-        // Adicione estes logs para verificar os dados
-        console.log('Trocas solicitadas (myRequests):', myRequests);
-        console.log('Trocas recebidas (receivedRequests):', receivedRequests);
-
-        setRequestedTrades(myRequests);
-        setReceivedTrades(receivedRequests);
-
+          setLoading(true);
+          setError('');
+  
+          // Faz as duas requisições em paralelo
+          const [myRequests, receivedRequests] = await Promise.all([
+              TradeService.getMyRequests(),
+              TradeService.getReceivedRequests()
+          ]);
+  
+          console.log('Trocas solicitadas (myRequests):', myRequests);
+          console.log('Trocas recebidas (receivedRequests):', receivedRequests);
+  
+          setRequestedTrades(myRequests);
+          setReceivedTrades(receivedRequests);
+  
       } catch (err) {
-        console.error('Error fetching trades:', err);
-        setError(err instanceof Error ? err.message : 'Erro ao carregar trocas');
+          console.error('Erro ao carregar trocas:', err);
+          setError('Erro ao carregar suas trocas: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
       } finally {
-        setLoading(false);
+          setLoading(false);
       }
     };
 
@@ -105,28 +104,28 @@ const MyTrades = () => {
 
   const handleTradeAction = async (tradeId: number, action: 'accept' | 'reject' | 'cancel') => {
     try {
-      const statusMap = {
-        accept: 'Accepted',
-        reject: 'Rejected',
-        cancel: 'Cancelled'
-      };
+        const statusMap = {
+            accept: 'Accepted',
+            reject: 'Rejected',
+            cancel: 'Cancelled'
+        };
 
-      await TradeService.changeStatus(tradeId, { Status: statusMap[action] });
+        await TradeService.changeStatus(tradeId, statusMap[action]);
 
-      // Atualiza o estado
-      setRequestedTrades(prev => 
-        action === 'cancel' 
-          ? prev.filter(t => t.tradeId !== tradeId)
-          : prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
-      );
+        // Atualiza o estado
+        setRequestedTrades(prev =>
+            action === 'cancel'
+                ? prev.filter(t => t.tradeId !== tradeId)
+                : prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
+        );
 
-      setReceivedTrades(prev => 
-        prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
-      );
+        setReceivedTrades(prev =>
+            prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
+        );
 
     } catch (err) {
-      setError(`Erro ao ${action} troca`);
-      console.error(err);
+        console.error(`Erro ao ${action} troca`, err);
+        setError(`Erro ao ${action} troca: ${(err instanceof Error) ? err.message : 'Erro desconhecido'}`);
     }
   };
 

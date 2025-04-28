@@ -76,8 +76,10 @@ export const TradeService = {
   async getReceivedRequests(): Promise<Trade[]> {
     try {
       const response = await axios.get(`${API_BASE_URL}/trades/received`);
+      console.log('Resposta recebida:', response.data); // Debug
       return response.data;
     } catch (error) {
+      console.error('Erro ao buscar solicitações recebidas:', error); // Debug
       handleAxiosError(error, 'Erro ao buscar solicitações recebidas');
     }
   },
@@ -93,12 +95,16 @@ export const TradeService = {
   },
 
   // Alterar status de uma troca (aceitar, recusar, cancelar, concluir)
-  async changeStatus(id: number, dto: { Status: string }): Promise<Trade> {
+  async changeStatus(id: number, status: string): Promise<Trade> {
     try {
-      const response = await axios.patch(`${API_BASE_URL}/trades/${id}/status`, dto);
-      return response.data;
+        const response = await axios.patch(`${API_BASE_URL}/trades/${id}/status`, status, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
     } catch (error) {
-      handleAxiosError(error, 'Erro ao alterar status da troca');
+        handleAxiosError(error, 'Erro ao alterar status da troca');
     }
   }
 };
