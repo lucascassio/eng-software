@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { BookCard } from '../components/BookCard';
+import { MyBookCard } from '../components/MyBookCard';
 import { BookService } from '../services/bookServices';
 import styles from './myBooks.module.scss';
 import Cookies from 'js-cookie';
@@ -178,7 +178,7 @@ const MyBooks = () => {
           <div className={styles.booksGrid}>
             {books.map(book => (
               <div key={book.bookId} className={styles.bookCardWrapper}>
-                <BookCard book={book} />
+                <MyBookCard book={book} />
                 <div className={styles.actions}>
                   <button
                     onClick={() => {
