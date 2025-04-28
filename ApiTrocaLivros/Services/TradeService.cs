@@ -17,11 +17,13 @@ namespace ApiTrocaLivros.Services
     {
         private readonly AppDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly NotificationService _notificationService;
         
-        public TradeService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+        public TradeService(AppDbContext context, IHttpContextAccessor httpContextAccessor, NotificationService notificationService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
         }
         
         private int GetCurrentUserId()
@@ -71,14 +73,30 @@ namespace ApiTrocaLivros.Services
             _context.Trades.Add(trade);
             await _context.SaveChangesAsync();
 
-            // Corrigido: recarrega com includes antes de mapear
-            var fullTrade = await _context.Trades
-                .Include(t => t.OfferedBook)
-                .Include(t => t.TargetBook)
-                .Include(t => t.Requester)
-                .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID);
+            // 6) Dispara notificação para o solicitante (quem fez a troca)
+            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            {
+                UserId = requesterId,  // Usuário que fez a solicitação de troca
+                Message = $"Você fez uma solicitação de troca! Aguardando a resposta.",
+                TradeId = trade.TradeID  // ID da troca
+            });
 
-            return MapToDTO(fullTrade!);
+            // 7) Dispara notificação para o dono do livro alvo
+            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            {
+                UserId = targetBook.OwnerId,  // Dono do livro alvo
+                Message = $"Você recebeu uma solicitação de troca para o livro '{targetBook.Title}'.",
+                TradeId = trade.TradeID  // ID da troca
+            });
+            
+            var fullTrade = await _context.Trades
+                                .Include(t => t.OfferedBook)
+                                .Include(t => t.TargetBook)
+                                .Include(t => t.Requester)
+                                .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID)
+                            ?? throw new Exception("Erro ao recarregar a trade criada.");
+
+            return MapToDTO(fullTrade);
         }
 
         
@@ -95,9 +113,9 @@ namespace ApiTrocaLivros.Services
             return MapToDTO(trade);
         }
 
-        public async Task<List<TradeDTOs.TradeResponseDTO>> GetAllByRequesterId(int requesterId)
+        public async Task<List<TradeDTOs.TradeResponseDTO>> GetAllByRequesterId()
         {
-            requesterId = GetCurrentUserId();
+            var requesterId = GetCurrentUserId();
             var trades = await _context.Trades
                 .Include(t => t.OfferedBook)
                 .Include(t => t.TargetBook)
@@ -151,6 +169,17 @@ namespace ApiTrocaLivros.Services
                 .Include(t => t.TargetBook)
                 .Include(t => t.Requester)
                 .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID);
+
+            var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
+                             ?? throw new InvalidOperationException(
+                                 $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
+            
+            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            {
+                UserId = targetBook.OwnerId,  // Dono do livro alvo
+                Message = $"Você aceitou a solicitação de troca para o livro '{targetBook.Title}'.",
+                TradeId = trade.TradeID  // ID da troca
+            });
 
             return MapToDTO(full!);
         }
@@ -214,7 +243,67 @@ namespace ApiTrocaLivros.Services
                                     ?? throw new InvalidOperationException(
                                         $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
                 targetBook.IsAvaiable = false;
+                
+                // Criar a notificação para o dono do livro alvo
+                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                {
+                    UserId = targetBook.OwnerId,  // Dono do livro alvo
+                    Message = $"Você aceitou a solicitação de troca para o livro '{targetBook.Title}'.",
+                    TradeId = trade.TradeID  // ID da troca
+                });
+                
+                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                {
+                    UserId  = trade.RequesterId,
+                    Message = $"Sua solicitação de troca para o livro '{targetBook.Title}' foi aceita!",
+                    TradeId = trade.TradeID
+                });
             }
+            
+            // 6) Se a troca for completada ou recusada, cria a notificação correspondente
+            if (dto.Status == TradeStatus.Completed)
+            {
+                // Criar notificação para o solicitante informando que a troca foi concluída
+                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                {
+                    UserId = trade.RequesterId,
+                    Message = $"A troca foi concluída com sucesso! Você agora tem o livro solicitado. Converse com o dono do livro para realizar a troca.",
+                    TradeId = trade.TradeID  // ID da troca
+                });
+                
+                var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
+                                 ?? throw new InvalidOperationException(
+                                     $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
+                
+                // Criar notificação para o dono do livro informando que a troca foi concluída
+                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                {
+                    UserId = targetBook.OwnerId,
+                    Message = $"A troca foi concluída com sucesso! Converse com o solicitante para realizar a troca.",
+                    TradeId = trade.TradeID  // ID da troca
+                });
+            }
+            else if (dto.Status == TradeStatus.Rejected)
+            {
+                // Criar notificação para o solicitante informando que a troca foi recusada
+                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                {
+                    UserId = trade.RequesterId,
+                    Message = $"Sua solicitação de troca foi recusada pelo dono do livro alvo.",
+                    TradeId = trade.TradeID  // ID da troca
+                });
+            }
+            else if (dto.Status == TradeStatus.Cancelled)
+            {
+                // Criar notificação para o solicitante informando que a troca foi cancelada
+                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                {
+                    UserId = trade.RequesterId,
+                    Message = $"Sua solicitação de troca foi cancelada.",
+                    TradeId = trade.TradeID  // ID da troca
+                });
+            }
+
 
             await _context.SaveChangesAsync();
             var full = await _context.Trades

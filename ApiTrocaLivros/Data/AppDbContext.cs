@@ -10,6 +10,7 @@ namespace ApiTrocaLivros.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<Trade> Trades { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public DbSet<BlacklistedToken> BlacklistedTokens { get; set; }
         public DbSet<Rating > Ratings { get; set; }
         //Duvida sobre esse protected override
