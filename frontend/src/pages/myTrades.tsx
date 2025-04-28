@@ -3,7 +3,6 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import styles from './myTrades.module.scss';
 import { TradeService } from '../services/tradeServices';
-import { BookCard } from '../components/BookCard';
 
 interface Book {
   bookId: number;
@@ -50,26 +49,26 @@ const MyTrades = () => {
   useEffect(() => {
     const fetchTrades = async () => {
       try {
-          setLoading(true);
-          setError('');
+        setLoading(true);
+        setError('');
   
-          // Faz as duas requisições em paralelo
-          const [myRequests, receivedRequests] = await Promise.all([
-              TradeService.getMyRequests(),
-              TradeService.getReceivedRequests()
-          ]);
+        // Faz as duas requisições em paralelo
+        const [myRequests, receivedRequests] = await Promise.all([
+          TradeService.getMyRequests(),
+          TradeService.getReceivedRequests()
+        ]);
   
-          console.log('Trocas solicitadas (myRequests):', myRequests);
-          console.log('Trocas recebidas (receivedRequests):', receivedRequests);
+        console.log('Trocas solicitadas (myRequests):', myRequests);
+        console.log('Trocas recebidas (receivedRequests):', receivedRequests);
   
-          setRequestedTrades(myRequests);
-          setReceivedTrades(receivedRequests);
+        setRequestedTrades(myRequests);
+        setReceivedTrades(receivedRequests);
   
       } catch (err) {
-          console.error('Erro ao carregar trocas:', err);
-          setError('Erro ao carregar suas trocas: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
+        console.error('Erro ao carregar trocas:', err);
+        setError('Erro ao carregar suas trocas: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
     };
 
@@ -104,30 +103,126 @@ const MyTrades = () => {
 
   const handleTradeAction = async (tradeId: number, action: 'accept' | 'reject' | 'cancel') => {
     try {
-        const statusMap = {
-            accept: 'Accepted',
-            reject: 'Rejected',
-            cancel: 'Cancelled'
-        };
+      const statusMap = {
+        accept: 'Accepted',
+        reject: 'Rejected',
+        cancel: 'Cancelled'
+      };
 
-        await TradeService.changeStatus(tradeId, statusMap[action]);
+      await TradeService.changeStatus(tradeId, statusMap[action]);
 
-        // Atualiza o estado
-        setRequestedTrades(prev =>
-            action === 'cancel'
-                ? prev.filter(t => t.tradeId !== tradeId)
-                : prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
-        );
+      // Atualiza o estado
+      setRequestedTrades(prev =>
+        action === 'cancel'
+          ? prev.filter(t => t.tradeId !== tradeId)
+          : prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
+      );
 
-        setReceivedTrades(prev =>
-            prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
-        );
+      setReceivedTrades(prev =>
+        prev.map(t => t.tradeId === tradeId ? { ...t, status: statusMap[action] } : t)
+      );
 
     } catch (err) {
-        console.error(`Erro ao ${action} troca`, err);
-        setError(`Erro ao ${action} troca: ${(err instanceof Error) ? err.message : 'Erro desconhecido'}`);
+      console.error(`Erro ao ${action} troca`, err);
+      setError(`Erro ao ${action} troca: ${(err instanceof Error) ? err.message : 'Erro desconhecido'}`);
     }
   };
+
+  // Componente para renderizar um livro na troca
+  const TradeBook = ({ book }: { book: Book }) => (
+    <div className={styles.tradeBookCard}>
+      <div className={styles.bookCover}>
+        <img src={`/bookcovers/${book.bookId % 10}.jpg`} alt="Capa do livro" />
+      </div>
+      <div className={styles.bookInfo}>
+        <div className={styles.bookTitle}>{book.title}</div>
+        <div className={styles.bookAuthor}>{book.author}</div>
+        <div className={styles.bookMeta}>
+          <span className={styles.tag}>{book.genre}</span>
+          <span className={styles.tag}>{book.year}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Componente para uma solicitação de troca
+  const TradeRequest = ({ trade }: { trade: Trade }) => (
+    <div className={styles.tradeCard}>
+      <div className={styles.tradeHeader}>
+        <span className={styles.tradeDate}>
+          {new Date(trade.createdAt).toLocaleDateString('pt-BR')}
+        </span>
+        {renderStatusBadge(trade.status)}
+      </div>
+
+      <div className={styles.booksContainer}>
+        <div className={styles.tradeBookSection}>
+          <h4>Você ofereceu:</h4>
+          <TradeBook book={trade.offeredBook} />
+        </div>
+
+        <div className={styles.tradeBookSection}>
+          <h4>Você solicitou:</h4>
+          <TradeBook book={trade.targetBook} />
+        </div>
+      </div>
+
+      {trade.status === 'Pending' && (
+        <div className={styles.actions}>
+          <button 
+            onClick={() => handleTradeAction(trade.tradeId, 'cancel')}
+            className={styles.cancelButton}
+          >
+            Cancelar Troca
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  // Componente para uma troca recebida
+  const TradeReceived = ({ trade }: { trade: Trade }) => (
+    <div className={styles.tradeCard}>
+      <div className={styles.tradeHeader}>
+        <span className={styles.tradeDate}>
+          {new Date(trade.createdAt).toLocaleDateString('pt-BR')}
+        </span>
+        {renderStatusBadge(trade.status)}
+        <div className={styles.requesterInfo}>
+          <span>Solicitado por: {trade.requester.name}</span>
+        </div>
+      </div>
+
+      <div className={styles.booksContainer}>
+        <div className={styles.tradeBookSection}>
+          <h4>Oferecido:</h4>
+          <TradeBook book={trade.offeredBook} />
+        </div>
+
+        <div className={styles.tradeBookSection}>
+          <h4>Solicitou seu livro:</h4>
+          <TradeBook book={trade.targetBook} />
+        </div>
+      </div>
+
+      {trade.status === 'Pending' && (
+        <div className={styles.actions}>
+          <button 
+            onClick={() => handleTradeAction(trade.tradeId, 'accept')}
+            className={styles.acceptButton}
+          >
+            Aceitar
+          </button>
+          <button 
+            onClick={() => handleTradeAction(trade.tradeId, 'reject')}
+            className={styles.rejectButton}
+          >
+            Recusar
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className={styles.pageContainer}>
@@ -155,8 +250,7 @@ const MyTrades = () => {
             {/* Trocas Solicitadas */}
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                Trocas que você solicitou
-                <span className={styles.badge}>{requestedTrades.length}</span>
+                Trocas que você solicitou 
               </h2>
 
               {requestedTrades.length === 0 ? (
@@ -166,37 +260,7 @@ const MyTrades = () => {
               ) : (
                 <div className={styles.tradesList}>
                   {requestedTrades.map(trade => (
-                    <div key={trade.tradeId} className={styles.tradeCard}>
-                      <div className={styles.tradeHeader}>
-                        <span className={styles.tradeDate}>
-                          {new Date(trade.createdAt).toLocaleDateString('pt-BR')}
-                        </span>
-                        {renderStatusBadge(trade.status)}
-                      </div>
-
-                      <div className={styles.booksContainer}>
-                        <div className={styles.bookCard}>
-                          <h4>Você ofereceu:</h4>
-                          <BookCard book={trade.offeredBook} compact />
-                        </div>
-
-                        <div className={styles.bookCard}>
-                          <h4>Você solicitou:</h4>
-                          <BookCard book={trade.targetBook} compact />
-                        </div>
-                      </div>
-
-                      {trade.status === 'Pending' && (
-                        <div className={styles.actions}>
-                          <button 
-                            onClick={() => handleTradeAction(trade.tradeId, 'cancel')}
-                            className={styles.cancelButton}
-                          >
-                            Cancelar Troca
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <TradeRequest key={trade.tradeId} trade={trade} />
                   ))}
                 </div>
               )}
@@ -206,7 +270,6 @@ const MyTrades = () => {
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>
                 Trocas recebidas
-                <span className={styles.badge}>{receivedTrades.length}</span>
               </h2>
 
               {receivedTrades.length === 0 ? (
@@ -216,46 +279,7 @@ const MyTrades = () => {
               ) : (
                 <div className={styles.tradesList}>
                   {receivedTrades.map(trade => (
-                    <div key={trade.tradeId} className={styles.tradeCard}>
-                      <div className={styles.tradeHeader}>
-                        <span className={styles.tradeDate}>
-                          {new Date(trade.createdAt).toLocaleDateString('pt-BR')}
-                        </span>
-                        {renderStatusBadge(trade.status)}
-                        <div className={styles.requesterInfo}>
-                          <span>Solicitado por: {trade.requester.name}</span>
-                        </div>
-                      </div>
-
-                      <div className={styles.booksContainer}>
-                        <div className={styles.bookCard}>
-                          <h4>Oferecido:</h4>
-                          <BookCard book={trade.offeredBook} compact />
-                        </div>
-
-                        <div className={styles.bookCard}>
-                          <h4>Solicitou seu livro:</h4>
-                          <BookCard book={trade.targetBook} compact />
-                        </div>
-                      </div>
-
-                      {trade.status === 'Pending' && (
-                        <div className={styles.actions}>
-                          <button 
-                            onClick={() => handleTradeAction(trade.tradeId, 'accept')}
-                            className={styles.acceptButton}
-                          >
-                            Aceitar
-                          </button>
-                          <button 
-                            onClick={() => handleTradeAction(trade.tradeId, 'reject')}
-                            className={styles.rejectButton}
-                          >
-                            Recusar
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <TradeReceived key={trade.tradeId} trade={trade} />
                   ))}
                 </div>
               )}
