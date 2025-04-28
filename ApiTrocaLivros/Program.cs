@@ -7,6 +7,8 @@ using ApiTrocaLivros.DTOs;
 using Microsoft.IdentityModel.Tokens;
 using DotNetEnv;
 
+DotNetEnv.Env.Load(); // Carregar variáveis de ambiente
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configurações
@@ -26,8 +28,14 @@ builder.Services.AddCors(options =>
 });
 
 // Banco de dados
+var connectionString = builder.Configuration.GetConnectionString("PostgreSQL");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("A string de conexão para o banco de dados PostgreSQL não foi configurada.");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
+    options.UseNpgsql(connectionString));
 
 // Registro dos serviços    
 builder.Services.AddScoped<UserService>();
@@ -48,6 +56,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();

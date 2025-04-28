@@ -8,7 +8,6 @@ using ApiTrocaLivros.Security;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ApiTrocaLivros.Controllers
-
 {
     [ApiController]
     [Route(template: "api/trades")]
@@ -16,13 +15,20 @@ namespace ApiTrocaLivros.Controllers
     {
         private readonly TradeService _tradeService;
         private readonly JwtService _jwtService;
+        private readonly ILogger<TradeController> _logger;
 
-        public TradeController(TradeService tradeService, JwtService jwtService)
+        public TradeController(TradeService tradeService, JwtService jwtService, ILogger<TradeController> logger)
         {
             _tradeService = tradeService;
             _jwtService = jwtService;
+            _logger = logger;
         }
 
+        /// <summary>
+        /// Obtém os detalhes de uma troca específica.
+        /// </summary>
+        /// <param name="id">ID da troca.</param>
+        /// <returns>Detalhes da troca.</returns>
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> Get(int id)
@@ -34,42 +40,65 @@ namespace ApiTrocaLivros.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                _logger.LogWarning("Troca com ID {Id} não encontrada.", id);
+                return NotFound(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                _logger.LogError(ex, "Erro ao obter troca com ID {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
 
+        /// <summary>
+        /// Cria uma nova troca.
+        /// </summary>
+        /// <param name="dto">Dados da troca a ser criada.</param>
+        /// <returns>Troca criada.</returns>
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> CreateTrade([FromBody] TradeDTOs.TradeRequestDTO dto)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { Message = "Dados inválidos.", Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)) });
+                }
+
                 var created = await _tradeService.Create(dto);
                 return CreatedAtAction(nameof(Get), new { id = created.TradeId }, created);
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                _logger.LogWarning("Erro ao criar troca: {Message}", ex.Message);
+                return NotFound(new { Message = ex.Message });
             }
             catch (UnauthorizedAccessException ex)
             {
+                _logger.LogWarning("Erro de autorização ao criar troca: {Message}", ex.Message);
                 return Forbid();
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                _logger.LogWarning("Erro de validação ao criar troca: {Message}", ex.Message);
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Erro ao salvar troca no banco de dados.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro ao salvar no banco de dados." });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                _logger.LogError(ex, "Erro inesperado ao criar troca.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
 
-        // Lista todas as trocas que o usuário autenticado solicitou
+        /// <summary>
+        /// Lista todas as trocas solicitadas pelo usuário autenticado.
+        /// </summary>
         [HttpGet("requester")]
         [Authorize]
         public async Task<IActionResult> GetMyRequests()
@@ -81,15 +110,19 @@ namespace ApiTrocaLivros.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                _logger.LogWarning("Nenhuma troca solicitada encontrada para o usuário.");
+                return NotFound(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                _logger.LogError(ex, "Erro ao listar trocas solicitadas.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
 
-        // Lista todas as solicitações recebidas para os livros do usuário autenticado
+        /// <summary>
+        /// Lista todas as solicitações de troca recebidas para os livros do usuário autenticado.
+        /// </summary>
         [HttpGet("received")]
         [Authorize]
         public async Task<IActionResult> GetReceivedRequests()
@@ -97,19 +130,20 @@ namespace ApiTrocaLivros.Controllers
             try
             {
                 var trades = await _tradeService.GetAllReceivedRequests();
-                return Ok(trades);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
+                return Ok(trades); // Sempre retorna 200, mesmo com lista vazia
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                _logger.LogError(ex, "Erro ao listar solicitações de troca recebidas.");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
-
-        // Atualiza detalhes da troca (livros ofertado/solicitado)
+        /// <summary>
+        /// Atualiza os detalhes de uma troca.
+        /// </summary>
+        /// <param name="id">ID da troca a ser atualizada.</param>
+        /// <param name="dto">Dados da atualização.</param>
+        /// <returns>Troca atualizada.</returns>
         [HttpPut("{id}")]
         [Authorize]
         public async Task<IActionResult> UpdateTrade(int id, [FromBody] TradeDTOs.TradeUpdateDTO dto)
@@ -121,23 +155,32 @@ namespace ApiTrocaLivros.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                _logger.LogWarning("Troca com ID {Id} não encontrada para atualização.", id);
+                return NotFound(new { Message = ex.Message });
             }
             catch (UnauthorizedAccessException)
             {
+                _logger.LogWarning("Usuário não autorizado a atualizar troca com ID {Id}.", id);
                 return Forbid();
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                _logger.LogWarning("Erro de validação ao atualizar troca com ID {Id}: {Message}", id, ex.Message);
+                return BadRequest(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                _logger.LogError(ex, "Erro ao atualizar troca com ID {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
 
-        // Altera o status da troca (aceitar, recusar, cancelar, concluir)
+        /// <summary>
+        /// Altera o status de uma troca.
+        /// </summary>
+        /// <param name="id">ID da troca.</param>
+        /// <param name="dto">Novo status da troca.</param>
+        /// <returns>Troca com status atualizado.</returns>
         [HttpPatch("{id}/status")]
         [Authorize]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] TradeDTOs.ChangeTradeStatusDTO dto)
@@ -149,21 +192,24 @@ namespace ApiTrocaLivros.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                _logger.LogWarning("Troca com ID {Id} não encontrada para alteração de status.", id);
+                return NotFound(new { Message = ex.Message });
             }
             catch (UnauthorizedAccessException)
             {
+                _logger.LogWarning("Usuário não autorizado a alterar o status da troca com ID {Id}.", id);
                 return Forbid();
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(ex.Message);
+                _logger.LogWarning("Erro ao alterar status da troca com ID {Id}: {Message}", id, ex.Message);
+                return Conflict(new { Message = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                _logger.LogError(ex, "Erro ao alterar status da troca com ID {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
-
     }
 }
