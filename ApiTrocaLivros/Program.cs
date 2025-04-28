@@ -28,14 +28,8 @@ builder.Services.AddCors(options =>
 });
 
 // Banco de dados
-var connectionString = builder.Configuration.GetConnectionString("PostgreSQL");
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new InvalidOperationException("A string de conexão para o banco de dados PostgreSQL não foi configurada.");
-}
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQL")));
 
 // Registro dos serviços    
 builder.Services.AddScoped<UserService>();
@@ -71,5 +65,6 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseStaticFiles();
 app.MapControllers();
 app.Run();

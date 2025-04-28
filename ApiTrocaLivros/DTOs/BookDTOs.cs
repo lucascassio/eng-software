@@ -8,26 +8,21 @@ public class BookDTOs
         [Required]
         [StringLength(50)]
         public string Title { get; set; }
-        
         [Required]
         [StringLength(50)]
         public string Author { get; set; }
-        
         [Required]
         [StringLength(50)]
         public string Genre { get; set; }
-        
         [Required] 
         [StringLength(50)]
         public string Publisher { get; set; }
-        
         [Required]
         public int Pages { get; set; }
-        
         [Required]
         public int Year { get; set; }
-        
         public string? Sinopse { get; set; }
+        public IFormFile? CoverImage { get; set; }   
     }
 
     public class BookUpdateRequestDTO
@@ -51,6 +46,8 @@ public class BookDTOs
         public string? Sinopse { get; set; }
         
         public bool? IsAvailable { get; set; }
+        
+        public IFormFile? CoverImage { get; set; }   
     }
 
     public class BookResponseDTO
@@ -66,6 +63,7 @@ public class BookDTOs
         public string? Sinopse { get; set; }
         public DateTime RegistrationDate { get; set; }
         public bool IsAvailable { get; set; }
+        public string? CoverImageUrl { get; set; }
     }
     
     

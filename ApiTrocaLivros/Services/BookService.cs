@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using ApiTrocaLivros.Data;
 using ApiTrocaLivros.DTOs;
@@ -16,11 +12,13 @@ namespace ApiTrocaLivros.Services
     {
         private readonly AppDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public BookService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
+        private readonly IWebHostEnvironment _env;    // ← adicionado
+        
+        public BookService(AppDbContext context, IHttpContextAccessor httpContextAccessor, IWebHostEnvironment env)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _env = env;
         }
         
         // Método auxiliar que extrai o ID do usuário autenticado a partir do token JWT
@@ -200,31 +198,44 @@ namespace ApiTrocaLivros.Services
                 book.Title = dto.Title;
             }
 
-            if (dto.Author is not null)
-                book.Author = dto.Author;
-            
-            if (dto.Genre is not null)
-                book.Genre = dto.Genre;
-            
-            if (dto.Publisher is not null)
-                book.Publisher = dto.Publisher;
-            
-            if (dto.Pages.HasValue)
-                book.Pages = dto.Pages.Value;
-
-            if (dto.Year.HasValue)
-                book.Year = dto.Year.Value;
-
-            if (dto.Sinopse is not null)
-                book.Sinopse = dto.Sinopse;
-
-            if (dto.IsAvailable.HasValue)
-                book.IsAvaiable = dto.IsAvailable.Value;
+            if (dto.Author is not null) book.Author = dto.Author;
+            if (dto.Genre is not null) book.Genre = dto.Genre;
+            if (dto.Publisher is not null) book.Publisher = dto.Publisher;
+            if (dto.Pages.HasValue) book.Pages = dto.Pages.Value;
+            if (dto.Year.HasValue) book.Year = dto.Year.Value;
+            if (dto.Sinopse is not null) book.Sinopse = dto.Sinopse;
+            if (dto.IsAvailable.HasValue) book.IsAvaiable = dto.IsAvailable.Value;
 
             // 4) persiste as alterações
             await _context.SaveChangesAsync();
+            
+            if (dto.CoverImage is not null)
+            {
+                await UploadCoverImageAsync(id, dto.CoverImage);
+            }
 
             return MapToDTO(book);
+        }
+        
+        public async Task<string> UploadCoverImageAsync(int bookId, IFormFile file)
+        {
+            var book = await _context.Books.FindAsync(bookId)
+                       ?? throw new KeyNotFoundException("Livro não encontrado.");
+
+            if (file.Length == 0 || !file.ContentType.StartsWith("image/"))
+                throw new ArgumentException("Arquivo inválido.");
+
+            var imagesPath = Path.Combine(_env.WebRootPath, "images");
+            Directory.CreateDirectory(imagesPath);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var fullPath = Path.Combine(imagesPath, fileName);
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            book.CoverImageUrl = $"/images/{fileName}";
+            await _context.SaveChangesAsync();
+            return book.CoverImageUrl!;
         }
 
         public async Task Delete(int id)
@@ -257,7 +268,8 @@ namespace ApiTrocaLivros.Services
                 Year = book.Year,
                 Sinopse = book.Sinopse,
                 RegistrationDate = book.RegistrationDate,
-                IsAvailable = book.IsAvaiable
+                IsAvailable = book.IsAvaiable,
+                CoverImageUrl    = book.CoverImageUrl
             };
         }
     }
