@@ -204,29 +204,51 @@ namespace ApiTrocaLivros.Services
         {
             return new TradeDTOs.TradeResponseDTO
             {
-                TradeId = trade.TradeID,
-                RequesterId = trade.RequesterId,
+                TradeId       = trade.TradeID,
+                RequesterId   = trade.RequesterId,
                 OfferedBookId = trade.OfferedBookId,
-                TargetBookId = trade.TargetBookId,
-                CreatedAt = trade.CreatedAt,
-                UpdatedAt = trade.UpdatedAt,
-                Status = trade.Status,
+                TargetBookId  = trade.TargetBookId,
+                CreatedAt     = trade.CreatedAt,
+                UpdatedAt     = trade.UpdatedAt,
+                Status        = trade.Status,
+
+                // Mapeia os nested DTOs usando as entidades carregadas
                 OfferedBook = new BookDTOs.BookResponseDTO
                 {
-                    BookId = trade.OfferedBook.BookId,
-                    Title = trade.OfferedBook.Title,
-                    IsAvailable = trade.OfferedBook.IsAvaiable
+                    BookId           = trade.OfferedBook.BookId,
+                    OwnerId          = trade.OfferedBook.OwnerId,
+                    Title            = trade.OfferedBook.Title,
+                    Author           = trade.OfferedBook.Author,
+                    Genre            = trade.OfferedBook.Genre,
+                    Publisher        = trade.OfferedBook.Publisher,
+                    Pages            = trade.OfferedBook.Pages,
+                    Year             = trade.OfferedBook.Year,
+                    Sinopse          = trade.OfferedBook.Sinopse,
+                    RegistrationDate = trade.OfferedBook.RegistrationDate,
+                    IsAvailable      = trade.OfferedBook.IsAvaiable
                 },
                 TargetBook = new BookDTOs.BookResponseDTO
                 {
-                    BookId = trade.TargetBook.BookId,
-                    Title = trade.TargetBook.Title,
-                    IsAvailable = trade.TargetBook.IsAvaiable
+                    BookId           = trade.TargetBook.BookId,
+                    OwnerId          = trade.TargetBook.OwnerId,
+                    Title            = trade.TargetBook.Title,
+                    Author           = trade.TargetBook.Author,
+                    Genre            = trade.TargetBook.Genre,
+                    Publisher        = trade.TargetBook.Publisher,
+                    Pages            = trade.TargetBook.Pages,
+                    Year             = trade.TargetBook.Year,
+                    Sinopse          = trade.TargetBook.Sinopse,
+                    RegistrationDate = trade.TargetBook.RegistrationDate,
+                    IsAvailable      = trade.TargetBook.IsAvaiable
                 },
                 Requester = new UserDTOs.UserResponseDTO
                 {
-                    Id = trade.Requester.Id,
-                    Name = trade.Requester.Name
+                    Id               = trade.Requester.Id,
+                    Name             = trade.Requester.Name,
+                    Email            = trade.Requester.Email,
+                    Course           = trade.Requester.Course,
+                    RegistrationDate = trade.Requester.RegistrationDate,
+                    IsActive         = trade.Requester.IsActive
                 }
             };
         }
