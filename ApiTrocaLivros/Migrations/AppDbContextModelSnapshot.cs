@@ -49,6 +49,10 @@ namespace ApiTrocaLivros.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<string>("Genre")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -119,7 +123,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("notifications");  
+                    b.ToTable("notifications");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
@@ -248,7 +252,6 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("Owner");
                 });
 
-
             modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
                 {
                     b.HasOne("ApiTrocaLivros.Models.Trade", "Trade")
@@ -266,8 +269,7 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("Trade");
 
                     b.Navigation("User");
-                        
-                 });
+                });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
                 {
@@ -294,7 +296,6 @@ namespace ApiTrocaLivros.Migrations
                     b.Navigation("EvaluatorUser");
 
                     b.Navigation("Trade");
-
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>

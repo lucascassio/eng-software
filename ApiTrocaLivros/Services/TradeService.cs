@@ -12,21 +12,21 @@ using ApiTrocaLivros.Functions;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace ApiTrocaLivros.Services
-
 {
     public class TradeService
     {
         private readonly AppDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly NotificationService _notificationService;
-        
+
         public TradeService(AppDbContext context, IHttpContextAccessor httpContextAccessor, NotificationService notificationService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
             _notificationService = notificationService;
         }
-        
+
+        // Obtém o ID do usuário autenticado
         private int GetCurrentUserId()
         {
             var user = _httpContextAccessor.HttpContext?.User;
@@ -42,15 +42,18 @@ namespace ApiTrocaLivros.Services
             return int.Parse(idClaim.Value);
         }
 
+        // Criação de uma nova troca
         public async Task<TradeDTOs.TradeResponseDTO> Create(TradeDTOs.TradeRequestDTO dto)
         {
             var requesterId = GetCurrentUserId();
 
+            // Verifica se os livros existem no banco
             var offeredBook = await _context.Books.FindAsync(dto.OfferedBookId)
                               ?? throw new KeyNotFoundException($"Livro oferecido com ID '{dto.OfferedBookId}' não encontrado.");
             var targetBook = await _context.Books.FindAsync(dto.TargetBookId)
                              ?? throw new KeyNotFoundException($"Livro alvo com ID '{dto.TargetBookId}' não encontrado.");
 
+            // Validações de lógica de negócio
             if (offeredBook.OwnerId != requesterId)
                 throw new UnauthorizedAccessException("Você não tem permissão para ofertar esse livro.");
 
@@ -62,48 +65,42 @@ namespace ApiTrocaLivros.Services
             if (dto.OfferedBookId == dto.TargetBookId)
                 throw new ArgumentException("Não é possível trocar o mesmo livro.");
 
+            // Cria a troca
             var trade = new Trade
             {
                 OfferedBookId = dto.OfferedBookId,
-                TargetBookId  = dto.TargetBookId,
-                RequesterId   = requesterId,
-                CreatedAt     = DateTime.UtcNow,
-                Status        = TradeStatus.Pending
+                TargetBookId = dto.TargetBookId,
+                RequesterId = requesterId,
+                CreatedAt = DateTime.UtcNow,
+                Status = TradeStatus.Pending
             };
 
             _context.Trades.Add(trade);
-            await _context.SaveChangesAsync();
 
-            // 6) Dispara notificação para o solicitante (quem fez a troca)
-            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            try
             {
-                UserId = requesterId,  // Usuário que fez a solicitação de troca
-                Message = $"Você fez uma solicitação de troca! Aguardando a resposta.",
-                TradeId = trade.TradeID  // ID da troca
-            });
+                // Salva no banco
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("Erro ao salvar a troca no banco de dados.", ex);
+            }
 
-            // 7) Dispara notificação para o dono do livro alvo
-            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
-            {
-                UserId = targetBook.OwnerId,  // Dono do livro alvo
-                Message = $"Você recebeu uma solicitação de troca para o livro '{targetBook.Title}'.",
-                TradeId = trade.TradeID  // ID da troca
-            });
-            
+            // Retorna a troca criada
             var fullTrade = await _context.Trades
                                 .Include(t => t.OfferedBook)
                                 .Include(t => t.TargetBook)
                                 .Include(t => t.Requester)
                                 .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID)
-                            ?? throw new Exception("Erro ao recarregar a trade criada.");
+                            ?? throw new Exception("Erro ao recarregar a troca criada.");
 
             return MapToDTO(fullTrade);
         }
 
-        
+        // Busca detalhes de uma troca específica pelo ID
         public async Task<TradeDTOs.TradeResponseDTO> Get(int id)
         {
-            // Inclui as navigations antes de mapear
             var trade = await _context.Trades
                             .Include(t => t.OfferedBook)
                             .Include(t => t.TargetBook)
@@ -114,6 +111,7 @@ namespace ApiTrocaLivros.Services
             return MapToDTO(trade);
         }
 
+        // Lista todas as trocas solicitadas pelo usuário autenticado
         public async Task<List<TradeDTOs.TradeResponseDTO>> GetAllByRequesterId()
         {
             var requesterId = GetCurrentUserId();
@@ -123,199 +121,107 @@ namespace ApiTrocaLivros.Services
                 .Include(t => t.Requester)
                 .Where(t => t.RequesterId == requesterId)
                 .ToListAsync();
-            
-            if(!trades.Any())
+
+            if (!trades.Any())
                 throw new KeyNotFoundException("Você não possui nenhuma troca.");
 
             return trades.Select(MapToDTO).ToList();
         }
-        
+
+        // Lista todas as solicitações recebidas para os livros do usuário autenticado
         public async Task<List<TradeDTOs.TradeResponseDTO>> GetAllReceivedRequests()
         {
             var userId = GetCurrentUserId();
 
-            //  filtra as trocas onde o livro alvo pertence a esse usuário
             var trades = await _context.Trades
+                .Include(t => t.OfferedBook)
+                .Include(t => t.TargetBook)
+                .Include(t => t.Requester)
                 .Where(t => t.TargetBook.OwnerId == userId)
-                .Select(t => MapToDTO(t))
                 .ToListAsync();
-            
-            if (!trades.Any())
-                throw new KeyNotFoundException("Não há solicitações de troca para você.");
 
-            return trades;
+            return trades.Select(MapToDTO).ToList();
         }
 
+        // Atualiza os detalhes de uma troca
         public async Task<TradeDTOs.TradeResponseDTO> Update(int id, TradeDTOs.TradeUpdateDTO dto)
         {
             var trade = await _context.Trades.FindAsync(id)
                         ?? throw new KeyNotFoundException($"Troca com ID '{id}' não encontrada.");
-            
+
             var requesterId = GetCurrentUserId();
             if (trade.RequesterId != requesterId)
                 throw new UnauthorizedAccessException("Você não pode alterar esta troca.");
-            
+
             if (dto.TargetBookId is not null)
                 trade.TargetBookId = dto.TargetBookId.Value;
-            
+
             if (dto.OfferedBookId is not null)
                 trade.OfferedBookId = dto.OfferedBookId.Value;
-            
+
             trade.UpdatedAt = DateTime.UtcNow;
-            
+
             await _context.SaveChangesAsync();
-            
-            var full = await _context.Trades
+
+            var fullTrade = await _context.Trades
                 .Include(t => t.OfferedBook)
                 .Include(t => t.TargetBook)
                 .Include(t => t.Requester)
                 .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID);
 
-            var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
-                             ?? throw new InvalidOperationException(
-                                 $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
-            
-            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
-            {
-                UserId = targetBook.OwnerId,  // Dono do livro alvo
-                Message = $"Você aceitou a solicitação de troca para o livro '{targetBook.Title}'.",
-                TradeId = trade.TradeID  // ID da troca
-            });
-
-            return MapToDTO(full!);
+            return MapToDTO(fullTrade!);
         }
 
-        public async Task<TradeDTOs.TradeResponseDTO> ChangeStatus(int id, TradeDTOs.ChangeTradeStatusDTO dto)
+        // In TradeService.cs
+        public async Task<TradeDTOs.TradeResponseDTO> ChangeStatus(int id, string newStatus)
         {
-            var trade = await _context.Trades.FindAsync(id)
-                ?? throw new KeyNotFoundException($"Troca com ID '{id}' não encontrada.");
-
-            var userId = GetCurrentUserId();
-
-            // 1) valida quem pode aceitar/rejeitar: só dono do livro alvo
-            if (dto.Status is TradeStatus.Accepted or TradeStatus.Rejected)
+            try
             {
-                var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
-                                  ?? throw new InvalidOperationException(
-                                     $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
-                if (targetBook.OwnerId != userId)
-                    throw new UnauthorizedAccessException(
-                        "Você não pode aceitar ou recusar esta troca.");
-            }
-            // 2) quem pode cancelar ou concluir: só quem fez a solicitação
-            else if (dto.Status is TradeStatus.Canceled or TradeStatus.Completed)
-            {
-                if (trade.RequesterId != userId)
-                    throw new UnauthorizedAccessException(
-                        "Você não pode cancelar ou concluir esta troca.");
-            }
+                var trade = await _context.Trades
+                    .Include(t => t.OfferedBook)
+                    .Include(t => t.TargetBook)
+                    .Include(t => t.Requester)
+                    .FirstOrDefaultAsync(t => t.TradeID == id);
 
-            // 3) regras de transição de estado
-            switch (trade.Status)
-            {
-                case TradeStatus.Pending:
-                    if (dto.Status is not (TradeStatus.Accepted or TradeStatus.Rejected or TradeStatus.Canceled))
-                        throw new InvalidOperationException(
-                            $"Não é possível mudar de {trade.Status} para {dto.Status}.");
-                    break;
-                case TradeStatus.Accepted:
-                    if (dto.Status != TradeStatus.Completed)
-                        throw new InvalidOperationException(
-                            $"Não é possível mudar de {trade.Status} para {dto.Status}.");
-                    break;
-                default:
-                    throw new InvalidOperationException(
-                        $"Não é possível alterar o status de {trade.Status}.");
-            }
+                if (trade == null)
+                    throw new KeyNotFoundException($"Troca com ID '{id}' não encontrada.");
 
-            // 4) aplica a mudança
-            trade.Status    = dto.Status;
-            trade.UpdatedAt = DateTime.UtcNow;
+                var userId = GetCurrentUserId();
 
-            // 5) se for ACCEPTED, marca ambos os livros como indisponíveis
-            if (dto.Status == TradeStatus.Accepted)
-            {
-                var offeredBook = await _context.Books.FindAsync(trade.OfferedBookId)
-                                    ?? throw new InvalidOperationException(
-                                        $"Livro ofertado (ID {trade.OfferedBookId}) não encontrado.");
-                offeredBook.IsAvaiable = false;
+                if (!Enum.TryParse<TradeStatus>(newStatus, true, out var status))
+                    throw new ArgumentException($"Status '{newStatus}' inválido.");
 
-                var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
-                                    ?? throw new InvalidOperationException(
-                                        $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
-                targetBook.IsAvaiable = false;
-                
-                // Criar a notificação para o dono do livro alvo
-                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                // Additional logging
+                Console.WriteLine($"Trade status change: ID={id}, Current status={trade.Status}, New status={status}, UserId={userId}");
+                Console.WriteLine($"Target book owner: {trade.TargetBook.OwnerId}, Requester: {trade.RequesterId}");
+
+                if (status is TradeStatus.Accepted or TradeStatus.Rejected)
                 {
-                    UserId = targetBook.OwnerId,  // Dono do livro alvo
-                    Message = $"Você aceitou a solicitação de troca para o livro '{targetBook.Title}'.",
-                    TradeId = trade.TradeID  // ID da troca
-                });
-                
-                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    if (trade.TargetBook.OwnerId != userId)
+                        throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca. Apenas o dono do livro alvo pode aceitar ou rejeitar.");
+                }
+                else if (status is TradeStatus.Cancelled or TradeStatus.Completed)
                 {
-                    UserId  = trade.RequesterId,
-                    Message = $"Sua solicitação de troca para o livro '{targetBook.Title}' foi aceita!",
-                    TradeId = trade.TradeID
-                });
-            }
-            
-            // 6) Se a troca for completada ou recusada, cria a notificação correspondente
-            if (dto.Status == TradeStatus.Completed)
-            {
-                // Criar notificação para o solicitante informando que a troca foi concluída
-                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
-                {
-                    UserId = trade.RequesterId,
-                    Message = $"A troca foi concluída com sucesso! Você agora tem o livro solicitado. Converse com o dono do livro para realizar a troca.",
-                    TradeId = trade.TradeID  // ID da troca
-                });
-                
-                var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
-                                 ?? throw new InvalidOperationException(
-                                     $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
-                
-                // Criar notificação para o dono do livro informando que a troca foi concluída
-                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
-                {
-                    UserId = targetBook.OwnerId,
-                    Message = $"A troca foi concluída com sucesso! Converse com o solicitante para realizar a troca.",
-                    TradeId = trade.TradeID  // ID da troca
-                });
-            }
-            else if (dto.Status == TradeStatus.Rejected)
-            {
-                // Criar notificação para o solicitante informando que a troca foi recusada
-                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
-                {
-                    UserId = trade.RequesterId,
-                    Message = $"Sua solicitação de troca foi recusada pelo dono do livro alvo.",
-                    TradeId = trade.TradeID  // ID da troca
-                });
-            }
-            else if (dto.Status == TradeStatus.Canceled)
-            {
-                // Criar notificação para o solicitante informando que a troca foi cancelada
-                await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
-                {
-                    UserId = trade.RequesterId,
-                    Message = $"Sua solicitação de troca foi cancelada.",
-                    TradeId = trade.TradeID  // ID da troca
-                });
-            }
+                    if (trade.RequesterId != userId)
+                        throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca. Apenas o solicitante pode cancelar ou marcar como concluída.");
+                }
 
+                trade.Status = status;
+                trade.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
-            var full = await _context.Trades
-                .Include(t => t.OfferedBook)
-                .Include(t => t.TargetBook)
-                .Include(t => t.Requester)
-                .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID);
+                await _context.SaveChangesAsync();
 
-            return MapToDTO(full!);
+                return MapToDTO(trade);
+            }
+            catch (Exception ex)
+            {
+                // Log the full exception
+                Console.WriteLine($"Exception in ChangeStatus: {ex}");
+                throw; // rethrow to be handled by controller
+            }
         }
         
+        // Mapeia a entidade Trade para o DTO
         private static TradeDTOs.TradeResponseDTO MapToDTO(Trade trade)
         {
             return new TradeDTOs.TradeResponseDTO
