@@ -97,16 +97,19 @@ export const TradeService = {
   // Alterar status de uma troca (aceitar, recusar, cancelar, concluir)
   async changeStatus(id: number, status: string): Promise<Trade> {
     try {
-        const response = await axios.patch(`${API_BASE_URL}/trades/${id}/status`, status, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
+        // Send a JSON object with a status property, not a raw string
+        const response = await axios.patch(`${API_BASE_URL}/trades/${id}/status`, 
+            { status: status },  // ← This is the key change
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
         return response.data;
     } catch (error) {
         handleAxiosError(error, 'Erro ao alterar status da troca');
     }
-  }
+}
 };
 
 // Função utilitária para tratar erros de forma padronizada

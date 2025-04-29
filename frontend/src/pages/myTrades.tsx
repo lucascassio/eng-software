@@ -101,12 +101,13 @@ const MyTrades = () => {
     );
   };
 
-  const handleTradeAction = async (tradeId: number, action: 'accept' | 'reject' | 'cancel') => {
+  const handleTradeAction = async (tradeId: number, action: 'accept' | 'reject' | 'cancel' | 'complete') => {
     try {
       const statusMap = {
         accept: 'Accepted',
         reject: 'Rejected',
-        cancel: 'Cancelled'
+        cancel: 'Cancelled',
+        complete: 'Completed'  // Added "complete" option
       };
 
       await TradeService.changeStatus(tradeId, statusMap[action]);
@@ -145,7 +146,6 @@ const MyTrades = () => {
     </div>
   );
 
-  // Componente para uma solicitação de troca
   const TradeRequest = ({ trade }: { trade: Trade }) => (
     <div className={styles.tradeCard}>
       <div className={styles.tradeHeader}>
@@ -167,20 +167,30 @@ const MyTrades = () => {
         </div>
       </div>
 
-      {trade.status === 'Pending' && (
-        <div className={styles.actions}>
+      <div className={styles.actions}>
+        {trade.status === 'Pending' && (
           <button 
             onClick={() => handleTradeAction(trade.tradeId, 'cancel')}
             className={styles.cancelButton}
           >
             Cancelar Troca
           </button>
-        </div>
-      )}
+        )}
+        
+        {/* O solicitante pode marcar como concluída depois de aceita */}
+        {trade.status === 'Accepted' && (
+          <button 
+            onClick={() => handleTradeAction(trade.tradeId, 'complete')}
+            className={styles.completeButton}
+          >
+            Marcar como Concluída
+          </button>
+        )}
+      </div>
     </div>
   );
 
-  // Componente para uma troca recebida
+  // Componente para uma troca recebida (recebida pelo usuário)
   const TradeReceived = ({ trade }: { trade: Trade }) => (
     <div className={styles.tradeCard}>
       <div className={styles.tradeHeader}>
@@ -205,6 +215,7 @@ const MyTrades = () => {
         </div>
       </div>
 
+      {/* Só mostra botões de ação quando estiver pendente */}
       {trade.status === 'Pending' && (
         <div className={styles.actions}>
           <button 
