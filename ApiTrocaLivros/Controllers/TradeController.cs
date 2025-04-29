@@ -174,20 +174,32 @@ namespace ApiTrocaLivros.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
+        
+        // Adicione esta classe no namespace ApiTrocaLivros.DTOs
+        public class StatusUpdateDTO
+        {
+            public string Status { get; set; }
+        }
 
-        /// <summary>
-        /// Altera o status de uma troca.
-        /// </summary>
-        /// <param name="id">ID da troca.</param>
-        /// <param name="dto">Novo status da troca.</param>
-        /// <returns>Troca com status atualizado.</returns>
         [HttpPatch("{id}/status")]
         [Authorize]
-        public async Task<IActionResult> ChangeStatus(int id, [FromBody] TradeDTOs.ChangeTradeStatusDTO dto)
+        public async Task<IActionResult> ChangeStatus(int id, [FromBody] StatusUpdateDTO dto)
         {
             try
             {
-                var updated = await _tradeService.ChangeStatus(id, dto);
+                if (dto == null)
+                {
+                    return BadRequest(new { Message = "Dados inválidos. O corpo da requisição não pode ser nulo." });
+                }
+
+                if (string.IsNullOrWhiteSpace(dto.Status))
+                {
+                    return BadRequest(new { Message = "O novo status é obrigatório." });
+                }
+
+                _logger.LogInformation("Recebida solicitação para alterar status da troca {TradeId} para {Status}", id, dto.Status);
+
+                var updated = await _tradeService.ChangeStatus(id, dto.Status);
                 return Ok(updated);
             }
             catch (KeyNotFoundException ex)
@@ -195,10 +207,15 @@ namespace ApiTrocaLivros.Controllers
                 _logger.LogWarning("Troca com ID {Id} não encontrada para alteração de status.", id);
                 return NotFound(new { Message = ex.Message });
             }
-            catch (UnauthorizedAccessException)
+            catch (UnauthorizedAccessException ex)
             {
-                _logger.LogWarning("Usuário não autorizado a alterar o status da troca com ID {Id}.", id);
+                _logger.LogWarning("Usuário não autorizado a alterar o status da troca com ID {Id}: {Message}", id, ex.Message);
                 return Forbid();
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Status inválido fornecido para troca com ID {Id}: {Status}", id, dto?.Status);
+                return BadRequest(new { Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
@@ -211,5 +228,7 @@ namespace ApiTrocaLivros.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
+
+        
     }
 }

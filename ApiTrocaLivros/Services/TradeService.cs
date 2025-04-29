@@ -172,36 +172,55 @@ namespace ApiTrocaLivros.Services
             return MapToDTO(fullTrade!);
         }
 
-        // Altera o status de uma troca (aceitar, recusar, cancelar, concluir)
-        public async Task<TradeDTOs.TradeResponseDTO> ChangeStatus(int id, TradeDTOs.ChangeTradeStatusDTO dto)
+        // In TradeService.cs
+        public async Task<TradeDTOs.TradeResponseDTO> ChangeStatus(int id, string newStatus)
         {
-            var trade = await _context.Trades
-                .Include(t => t.OfferedBook)
-                .Include(t => t.TargetBook)
-                .FirstOrDefaultAsync(t => t.TradeID == id)
-                ?? throw new KeyNotFoundException($"Troca com ID '{id}' não encontrada.");
-
-            var userId = GetCurrentUserId();
-
-            if (dto.Status is TradeStatus.Accepted or TradeStatus.Rejected)
+            try
             {
-                if (trade.TargetBook.OwnerId != userId)
-                    throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca.");
+                var trade = await _context.Trades
+                    .Include(t => t.OfferedBook)
+                    .Include(t => t.TargetBook)
+                    .Include(t => t.Requester)
+                    .FirstOrDefaultAsync(t => t.TradeID == id);
+
+                if (trade == null)
+                    throw new KeyNotFoundException($"Troca com ID '{id}' não encontrada.");
+
+                var userId = GetCurrentUserId();
+
+                if (!Enum.TryParse<TradeStatus>(newStatus, true, out var status))
+                    throw new ArgumentException($"Status '{newStatus}' inválido.");
+
+                // Additional logging
+                Console.WriteLine($"Trade status change: ID={id}, Current status={trade.Status}, New status={status}, UserId={userId}");
+                Console.WriteLine($"Target book owner: {trade.TargetBook.OwnerId}, Requester: {trade.RequesterId}");
+
+                if (status is TradeStatus.Accepted or TradeStatus.Rejected)
+                {
+                    if (trade.TargetBook.OwnerId != userId)
+                        throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca. Apenas o dono do livro alvo pode aceitar ou rejeitar.");
+                }
+                else if (status is TradeStatus.Cancelled or TradeStatus.Completed)
+                {
+                    if (trade.RequesterId != userId)
+                        throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca. Apenas o solicitante pode cancelar ou marcar como concluída.");
+                }
+
+                trade.Status = status;
+                trade.UpdatedAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+
+                return MapToDTO(trade);
             }
-            else if (dto.Status is TradeStatus.Cancelled or TradeStatus.Completed)
+            catch (Exception ex)
             {
-                if (trade.RequesterId != userId)
-                    throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca.");
+                // Log the full exception
+                Console.WriteLine($"Exception in ChangeStatus: {ex}");
+                throw; // rethrow to be handled by controller
             }
-
-            trade.Status = dto.Status;
-            trade.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            return MapToDTO(trade);
         }
-
+        
         // Mapeia a entidade Trade para o DTO
         private static TradeDTOs.TradeResponseDTO MapToDTO(Trade trade)
         {
