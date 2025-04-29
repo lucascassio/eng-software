@@ -133,13 +133,16 @@ namespace ApiTrocaLivros.Services
         {
             var userId = GetCurrentUserId();
 
-            // Inclui a navegação antes de filtrar
             var trades = await _context.Trades
-                .Include(t => t.TargetBook) // Garante que TargetBook está carregado
+                .Include(t => t.OfferedBook)
+                .Include(t => t.TargetBook)
+                .Include(t => t.Requester)
                 .Where(t => t.TargetBook.OwnerId == userId)
                 .ToListAsync();
-            return trades.Select(MapToDTO).ToList(); // Retorna a lista, mesmo que vazia
+
+            return trades.Select(MapToDTO).ToList();
         }
+
         // Atualiza os detalhes de uma troca
         public async Task<TradeDTOs.TradeResponseDTO> Update(int id, TradeDTOs.TradeUpdateDTO dto)
         {
