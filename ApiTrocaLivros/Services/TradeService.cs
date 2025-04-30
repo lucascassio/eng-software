@@ -247,7 +247,8 @@ namespace ApiTrocaLivros.Services
                     Year             = trade.OfferedBook.Year,
                     Sinopse          = trade.OfferedBook.Sinopse,
                     RegistrationDate = trade.OfferedBook.RegistrationDate,
-                    IsAvailable      = trade.OfferedBook.IsAvaiable
+                    IsAvailable      = trade.OfferedBook.IsAvaiable,
+                    CoverImageUrl    = trade.OfferedBook.CoverImageUrl
                 },
                 TargetBook = new BookDTOs.BookResponseDTO
                 {
@@ -261,7 +262,8 @@ namespace ApiTrocaLivros.Services
                     Year             = trade.TargetBook.Year,
                     Sinopse          = trade.TargetBook.Sinopse,
                     RegistrationDate = trade.TargetBook.RegistrationDate,
-                    IsAvailable      = trade.TargetBook.IsAvaiable
+                    IsAvailable      = trade.TargetBook.IsAvaiable,
+                    CoverImageUrl    = trade.TargetBook.CoverImageUrl
                 },
                 Requester = new UserDTOs.UserResponseDTO
                 {
