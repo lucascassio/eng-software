@@ -182,3 +182,5 @@ export const BookCard: React.FC<BookCardProps> = ({ book }) => {
     </>
   );
 };
+
+export default BookCard;

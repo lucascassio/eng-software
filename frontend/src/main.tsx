@@ -7,6 +7,7 @@ import Register from './pages/register';
 import Feed from './pages/feed';
 import MyBooks from './pages/myBooks';
 import MyTrades from './pages/myTrades';
+import Profile from './pages/Profile';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/feed" element={<Feed />} />
         <Route path="/myBooks" element={< MyBooks/>} />
         <Route path="/myTrades" element={<MyTrades />} />
+        <Route path="/profile" element={<Profile />} />
         {/* Adicione outras rotas conforme necessário */}
       </Routes>
     </BrowserRouter>
