@@ -8,6 +8,13 @@
     align-items: center;
   }
   
+  .headerContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
   .profileInfo {
     background-color: #34495e;
     padding: 20px;

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Header } from '../components/Header';
+import { Footer } from '../components/Footer';
 import BookCard from '../components/BookCard';
 import ProfileForm from './ProfileForm';
 import styles from './profile.module.scss';
@@ -40,6 +42,8 @@ const Profile: React.FC = () => {
 
   return (
     <div className={styles.profilePage}>
+      <Header />
+      <div className={styles.headerContainer}></div>
       <div className={styles.profileInfo}>
         <img src={user.photo} alt="Foto do usuário" className={styles.profileImage} />
         <h2 className={styles.profileName}>{user.name}</h2>
@@ -59,6 +63,7 @@ const Profile: React.FC = () => {
       {isEditing && (
         <ProfileForm user={user} onClose={() => setIsEditing(false)} onSave={handleSaveProfile} />
       )}
+      <Footer />
     </div>
   );
 };
