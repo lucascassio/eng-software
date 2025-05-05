@@ -97,30 +97,28 @@ const MyTrades = () => {
     }
   };
 
-
-  // Componente para renderizar um livro na troca
   const TradeBook = ({ book }: { book: Book }) => {
-    // --- DEBUG 2: Verificar o objeto 'book' recebido como prop ---
-    console.log(`[DEBUG] TradeBook recebeu livro: ${book.title} (ID: ${book.bookId})`, book);
-    // --- FIM DEBUG 2 ---
-
+    // Prefixo base do servidor
+    const baseUrl = "http://localhost:5185"; // Altere para o seu domínio ou porta, se necessário
+  
+    // Gerando o caminho completo da imagem
+    const imageSrc = book.coverImageUrl.startsWith('/')
+      ? `${baseUrl}${book.coverImageUrl}` // Caso o caminho seja relativo
+      : `${baseUrl}/images/${book.coverImageUrl}`; // Caso seja necessário adicionar a pasta "images"
+  
+    console.log(`[DEBUG] Gerando URL completa para imagem: ${imageSrc}`); // Debug do caminho gerado
+  
     return (
       <div className={styles.tradeBookCard}>
         <div className={styles.bookCover}>
           {book.coverImageUrl ? (
-            <>
-              {/* --- DEBUG 3: Verificar a URL antes de renderizar a imagem --- */}
-              {console.log(`[DEBUG] Tentando renderizar imagem para '${book.title}' com URL:`, book.coverImageUrl)}
-              {/* --- FIM DEBUG 3 --- */}
-              <img src={book.coverImageUrl} alt={`Capa de ${book.title}`} className={styles.coverImage} />
-            </>
+            <img
+              src={imageSrc}
+              alt={`Capa de ${book.title}`}
+              className={styles.coverImage}
+            />
           ) : (
-            <>
-              {/* --- DEBUG 4: Verificar quando o placeholder é renderizado --- */}
-              {console.log(`[DEBUG] Renderizando placeholder para '${book.title}' (URL era: ${book.coverImageUrl})`)}
-              {/* --- FIM DEBUG 4 --- */}
-              <div className={styles.placeholder}>Sem Capa</div>
-            </>
+            <div className={styles.placeholder}>Sem Capa</div>
           )}
         </div>
         <div className={styles.bookInfo}>
@@ -134,8 +132,6 @@ const MyTrades = () => {
       </div>
     );
   };
-
-
     // Componente para renderizar um cartão de troca (solicitada ou recebida)
     const TradeCardDisplay = ({ trade, type }: { trade: Trade, type: 'requested' | 'received' }) => {
         const isReceived = type === 'received';
