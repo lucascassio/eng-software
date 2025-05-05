@@ -3,6 +3,7 @@ using System;
 using ApiTrocaLivros.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiTrocaLivros.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250505153842_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,7 +36,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasKey("Jti");
 
-                    b.ToTable("blacklisted_tokens", (string)null);
+                    b.ToTable("blacklisted_tokens");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Book", b =>
@@ -90,7 +93,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("books", (string)null);
+                    b.ToTable("books");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
@@ -123,7 +126,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("notifications", (string)null);
+                    b.ToTable("notifications");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
@@ -162,7 +165,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("TradeId");
 
-                    b.ToTable("ratings", (string)null);
+                    b.ToTable("ratings");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
@@ -199,7 +202,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("TargetBookId");
 
-                    b.ToTable("trade", (string)null);
+                    b.ToTable("trade");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.User", b =>
@@ -238,7 +241,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("users");
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Book", b =>

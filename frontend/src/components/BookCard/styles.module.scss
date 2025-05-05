@@ -1,4 +1,4 @@
-:global(.card) {
+.card {
   background: #34495e;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -9,9 +9,16 @@
   flex-direction: column;
 }
 
-:global(.card:hover) {
+.card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardContent {
+  padding: 1rem; /* Adiciona "respiro" visual ao conteúdo */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Espaçamento entre os elementos internos */
 }
 
 .coverContainer {

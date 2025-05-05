@@ -234,9 +234,9 @@ namespace ApiTrocaLivros.Services
                 UpdatedAt     = trade.UpdatedAt,
                 Status        = trade.Status,
 
-                // Mapeia os nested DTOs usando as entidades carregadas
                 OfferedBook = new BookDTOs.BookResponseDTO
                 {
+                    CoverImageUrl    = trade.OfferedBook.CoverImageUrl ?? string.Empty, // Corrigido para evitar null
                     BookId           = trade.OfferedBook.BookId,
                     OwnerId          = trade.OfferedBook.OwnerId,
                     Title            = trade.OfferedBook.Title,
@@ -247,11 +247,11 @@ namespace ApiTrocaLivros.Services
                     Year             = trade.OfferedBook.Year,
                     Sinopse          = trade.OfferedBook.Sinopse,
                     RegistrationDate = trade.OfferedBook.RegistrationDate,
-                    IsAvailable      = trade.OfferedBook.IsAvaiable,
-                    CoverImageUrl    = trade.OfferedBook.CoverImageUrl
+                    IsAvailable      = trade.OfferedBook.IsAvaiable
                 },
                 TargetBook = new BookDTOs.BookResponseDTO
                 {
+                    CoverImageUrl    = trade.TargetBook.CoverImageUrl ?? string.Empty, // Corrigido para evitar null
                     BookId           = trade.TargetBook.BookId,
                     OwnerId          = trade.TargetBook.OwnerId,
                     Title            = trade.TargetBook.Title,
@@ -262,8 +262,7 @@ namespace ApiTrocaLivros.Services
                     Year             = trade.TargetBook.Year,
                     Sinopse          = trade.TargetBook.Sinopse,
                     RegistrationDate = trade.TargetBook.RegistrationDate,
-                    IsAvailable      = trade.TargetBook.IsAvaiable,
-                    CoverImageUrl    = trade.TargetBook.CoverImageUrl
+                    IsAvailable      = trade.TargetBook.IsAvaiable
                 },
                 Requester = new UserDTOs.UserResponseDTO
                 {

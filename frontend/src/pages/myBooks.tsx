@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import BookForm, { BookRequestDTO } from '../components/BookForm';
-import { BookCard } from '../components/BookCard';
+import { BookCard } from '../components/MyBooksCard';
 import { BookService, Book } from '../services/bookServices';
 import styles from './myBooks.module.scss';
 import Cookies from 'js-cookie';

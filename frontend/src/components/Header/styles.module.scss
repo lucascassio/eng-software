@@ -1,30 +1,40 @@
-// src/components/Header/styles.module.scss
 .header {
-    background-color: #34495e;
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .nav {
-    display: flex;
-    gap: 2rem;
-  }
-  
-  .link {
-    color: #ecf0f1;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 1.1rem;
-    transition: color 0.3s ease;
-  
-    &:hover {
-      color: white;
-    }
-  }
-  
-  .activeLink {
-    @extend .link;
+  background-color: #34495e;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between; /* Adicionado para separar os links à esquerda e à direita */
+  align-items: center;
+}
+
+.leftLinks {
+  display: flex;
+  gap: 2rem; /* Define o espaçamento entre os links à esquerda */
+}
+
+.rightLinks {
+  display: flex;
+  gap: 1rem; /* Espaçamento entre os links à direita (se precisar adicionar mais no futuro) */
+}
+
+.link {
+  color: #ecf0f1;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+
+  &:hover {
     color: white;
-    border-bottom: 2px solid white;
-    padding-bottom: 0.25rem;
   }
+}
+
+.activeLink {
+  @extend .link;
+  color: white;
+  border-bottom: 2px solid white;
+  padding-bottom: 0.25rem;
+}
