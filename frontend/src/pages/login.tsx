@@ -1,7 +1,7 @@
 // src/pages/Login/Login.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthService } from '../services/userService';
+import { AuthService } from '../services/authService';
 import './login.scss';
 
 const Login = () => {

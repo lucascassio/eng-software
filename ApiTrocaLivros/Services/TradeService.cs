@@ -172,7 +172,7 @@ namespace ApiTrocaLivros.Services
             return MapToDTO(fullTrade!);
         }
 
-        // Altera o status de uma troca
+        // In TradeService.cs
         public async Task<TradeDTOs.TradeResponseDTO> ChangeStatus(int id, string newStatus)
         {
             try
@@ -191,16 +191,19 @@ namespace ApiTrocaLivros.Services
                 if (!Enum.TryParse<TradeStatus>(newStatus, true, out var status))
                     throw new ArgumentException($"Status '{newStatus}' inválido.");
 
-                // Validações de permissão
+                // Additional logging
+                Console.WriteLine($"Trade status change: ID={id}, Current status={trade.Status}, New status={status}, UserId={userId}");
+                Console.WriteLine($"Target book owner: {trade.TargetBook.OwnerId}, Requester: {trade.RequesterId}");
+
                 if (status is TradeStatus.Accepted or TradeStatus.Rejected)
                 {
                     if (trade.TargetBook.OwnerId != userId)
-                        throw new UnauthorizedAccessException("Apenas o dono do livro alvo pode aceitar ou rejeitar a troca.");
+                        throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca. Apenas o dono do livro alvo pode aceitar ou rejeitar.");
                 }
                 else if (status is TradeStatus.Cancelled or TradeStatus.Completed)
                 {
                     if (trade.RequesterId != userId)
-                        throw new UnauthorizedAccessException("Apenas o solicitante pode cancelar ou concluir a troca.");
+                        throw new UnauthorizedAccessException("Você não tem permissão para alterar esta troca. Apenas o solicitante pode cancelar ou marcar como concluída.");
                 }
 
                 trade.Status = status;
@@ -212,61 +215,63 @@ namespace ApiTrocaLivros.Services
             }
             catch (Exception ex)
             {
+                // Log the full exception
                 Console.WriteLine($"Exception in ChangeStatus: {ex}");
-                throw;
+                throw; // rethrow to be handled by controller
             }
         }
-
+        
         // Mapeia a entidade Trade para o DTO
         private static TradeDTOs.TradeResponseDTO MapToDTO(Trade trade)
         {
             return new TradeDTOs.TradeResponseDTO
             {
-                TradeId = trade.TradeID,
-                RequesterId = trade.RequesterId,
+                TradeId       = trade.TradeID,
+                RequesterId   = trade.RequesterId,
                 OfferedBookId = trade.OfferedBookId,
-                TargetBookId = trade.TargetBookId,
-                CreatedAt = trade.CreatedAt,
-                UpdatedAt = trade.UpdatedAt,
-                Status = trade.Status,
+                TargetBookId  = trade.TargetBookId,
+                CreatedAt     = trade.CreatedAt,
+                UpdatedAt     = trade.UpdatedAt,
+                Status        = trade.Status,
+
                 OfferedBook = new BookDTOs.BookResponseDTO
                 {
-                    BookId = trade.OfferedBook.BookId,
-                    OwnerId = trade.OfferedBook.OwnerId,
-                    Title = trade.OfferedBook.Title,
-                    Author = trade.OfferedBook.Author,
-                    Genre = trade.OfferedBook.Genre,
-                    Publisher = trade.OfferedBook.Publisher,
-                    Pages = trade.OfferedBook.Pages,
-                    Year = trade.OfferedBook.Year,
-                    Sinopse = trade.OfferedBook.Sinopse,
+                    CoverImageUrl    = trade.OfferedBook.CoverImageUrl ?? string.Empty, // Corrigido para evitar null
+                    BookId           = trade.OfferedBook.BookId,
+                    OwnerId          = trade.OfferedBook.OwnerId,
+                    Title            = trade.OfferedBook.Title,
+                    Author           = trade.OfferedBook.Author,
+                    Genre            = trade.OfferedBook.Genre,
+                    Publisher        = trade.OfferedBook.Publisher,
+                    Pages            = trade.OfferedBook.Pages,
+                    Year             = trade.OfferedBook.Year,
+                    Sinopse          = trade.OfferedBook.Sinopse,
                     RegistrationDate = trade.OfferedBook.RegistrationDate,
-                    IsAvailable = trade.OfferedBook.IsAvaiable,
-                    CoverImageUrl = trade.OfferedBook.CoverImageUrl // Certifique-se de incluir este campo
+                    IsAvailable      = trade.OfferedBook.IsAvaiable
                 },
                 TargetBook = new BookDTOs.BookResponseDTO
                 {
-                    BookId = trade.TargetBook.BookId,
-                    OwnerId = trade.TargetBook.OwnerId,
-                    Title = trade.TargetBook.Title,
-                    Author = trade.TargetBook.Author,
-                    Genre = trade.TargetBook.Genre,
-                    Publisher = trade.TargetBook.Publisher,
-                    Pages = trade.TargetBook.Pages,
-                    Year = trade.TargetBook.Year,
-                    Sinopse = trade.TargetBook.Sinopse,
+                    CoverImageUrl    = trade.TargetBook.CoverImageUrl ?? string.Empty, // Corrigido para evitar null
+                    BookId           = trade.TargetBook.BookId,
+                    OwnerId          = trade.TargetBook.OwnerId,
+                    Title            = trade.TargetBook.Title,
+                    Author           = trade.TargetBook.Author,
+                    Genre            = trade.TargetBook.Genre,
+                    Publisher        = trade.TargetBook.Publisher,
+                    Pages            = trade.TargetBook.Pages,
+                    Year             = trade.TargetBook.Year,
+                    Sinopse          = trade.TargetBook.Sinopse,
                     RegistrationDate = trade.TargetBook.RegistrationDate,
-                    IsAvailable = trade.TargetBook.IsAvaiable,
-                    CoverImageUrl = trade.TargetBook.CoverImageUrl // Certifique-se de incluir este campo
+                    IsAvailable      = trade.TargetBook.IsAvaiable
                 },
                 Requester = new UserDTOs.UserResponseDTO
                 {
-                    Id = trade.Requester.Id,
-                    Name = trade.Requester.Name,
-                    Email = trade.Requester.Email,
-                    Course = trade.Requester.Course,
+                    Id               = trade.Requester.Id,
+                    Name             = trade.Requester.Name,
+                    Email            = trade.Requester.Email,
+                    Course           = trade.Requester.Course,
                     RegistrationDate = trade.Requester.RegistrationDate,
-                    IsActive = trade.Requester.IsActive
+                    IsActive         = trade.Requester.IsActive
                 }
             };
         }

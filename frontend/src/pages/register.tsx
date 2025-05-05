@@ -1,7 +1,7 @@
 // src/pages/Register/Register.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthService } from '../services/userService';
+import { AuthService } from '../services/authService';
 import './register.scss';
 
 const Register = () => {

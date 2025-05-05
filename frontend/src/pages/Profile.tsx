@@ -1,68 +1,99 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import BookCard from '../components/BookCard';
 import ProfileForm from './ProfileForm';
+import { UserService, UserProfile, UpdateUserDTO } from '../services/userService';
 import styles from './profile.module.scss';
+import { jwtDecode } from 'jwt-decode';
 
-interface Book {
-  id: number;
-  title: string;
-  author: string;
-  coverUrl: string;
-}
-
-interface UserProfile {
+interface JwtPayload {
+  sub: string; // ID do usuário
   name: string;
-  bio: string;
-  photo: string;
+  email: string;
 }
 
 const Profile: React.FC = () => {
-  const [user, setUser] = useState<UserProfile>({
-    name: 'Fulano de Tal',
-    bio: 'Entusiasta de livros de ficção científica e fantasia.',
-    photo: 'https://via.placeholder.com/150'
-  });
-
-  const [books, setBooks] = useState<Book[]>([
-    { id: 1, title: '1984', author: 'George Orwell', coverUrl: 'https://via.placeholder.com/100x150' },
-    { id: 2, title: 'O Senhor dos Anéis', author: 'J.R.R. Tolkien', coverUrl: 'https://via.placeholder.com/100x150' },
-    { id: 3, title: 'Dom Casmurro', author: 'Machado de Assis', coverUrl: 'https://via.placeholder.com/100x150' }
-  ]);
-
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Função para salvar as alterações do perfil
-  const handleSaveProfile = (updatedUser: UserProfile) => {
-    setUser(updatedUser);
-    setIsEditing(false);
-    // No futuro, aqui você chamaria a API para salvar as alterações
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+
+        const token = UserService.getToken();
+        if (!token) {
+          throw new Error('Usuário não autenticado.');
+        }
+
+        const decoded = jwtDecode<JwtPayload>(token);
+        const userId = parseInt(decoded.sub);
+
+        const userData = await UserService.getUserById(userId);
+        setUser(userData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro ao carregar os dados.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleSaveProfile = async (updatedData: UpdateUserDTO) => {
+    try {
+      if (!user) return;
+
+      await UserService.updateUser(user.id, updatedData);
+      setUser({ ...user, ...updatedData });
+      setIsEditing(false);
+    } catch (err) {
+      setError('Erro ao salvar as alterações.');
+    }
   };
+
+  if (loading) return <div className={styles.loading}>Carregando...</div>;
+  if (error) return <div className={styles.error}>{error}</div>;
 
   return (
     <div className={styles.profilePage}>
       <Header />
-      <div className={styles.headerContainer}></div>
-      <div className={styles.profileInfo}>
-        <img src={user.photo} alt="Foto do usuário" className={styles.profileImage} />
-        <h2 className={styles.profileName}>{user.name}</h2>
-        <p className={styles.profileBio}>{user.bio}</p>
-        <button className={styles.editButton} onClick={() => setIsEditing(true)}>
-          Editar Perfil
-        </button>
-      </div>
+      <div className={styles.content}>
+        <div className={styles.profileContainer}>
+          {user && (
+            <div className={styles.profileCard}>
+              <div className={styles.profilePlaceholder}>
+                <span>{user.name.charAt(0).toUpperCase()}</span>
+              </div>
+              <h2 className={styles.profileName}>{user.name}</h2>
+              <p className={styles.profileEmail}>{user.email}</p>
+              <p className={styles.profileCourse}>
+                <strong>Curso:</strong> {user.course}
+              </p>
+              <p className={styles.profileRegistrationDate}>
+                <strong>Data de Registro:</strong> {new Date(user.registrationDate).toLocaleDateString()}
+              </p>
+              <p className={styles.profileStatus}>
+                <strong>Status:</strong> {user.isActive ? 'Ativo' : 'Inativo'}
+              </p>
+              <button className={styles.editButton} onClick={() => setIsEditing(true)}>
+                Editar Perfil
+              </button>
+            </div>
+          )}
+        </div>
 
-      <h3>Meus Livros para Troca</h3>
-      <div className={styles.bookList}>
-        {books.map((book) => (
-          <BookCard key={book.id} book={book} />
-        ))}
+        {isEditing && user && (
+          <ProfileForm
+            user={user}
+            onClose={() => setIsEditing(false)}
+            onSave={handleSaveProfile}
+          />
+        )}
       </div>
-
-      {isEditing && (
-        <ProfileForm user={user} onClose={() => setIsEditing(false)} onSave={handleSaveProfile} />
-      )}
       <Footer />
     </div>
   );

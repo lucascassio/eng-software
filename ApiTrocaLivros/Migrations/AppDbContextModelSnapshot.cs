@@ -33,7 +33,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasKey("Jti");
 
-                    b.ToTable("blacklisted_tokens");
+                    b.ToTable("blacklisted_tokens", (string)null);
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Book", b =>
@@ -90,7 +90,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("books");
+                    b.ToTable("books", (string)null);
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Notification", b =>
@@ -123,7 +123,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("notifications");
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Rating", b =>
@@ -162,7 +162,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("TradeId");
 
-                    b.ToTable("ratings");
+                    b.ToTable("ratings", (string)null);
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Trade", b =>
@@ -199,7 +199,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasIndex("TargetBookId");
 
-                    b.ToTable("trade");
+                    b.ToTable("trade", (string)null);
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.User", b =>
@@ -238,7 +238,7 @@ namespace ApiTrocaLivros.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("users");
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("ApiTrocaLivros.Models.Book", b =>
