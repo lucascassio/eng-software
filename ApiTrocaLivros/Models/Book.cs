@@ -1,8 +1,5 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
-using ApiTrocaLivros.Data;
 
 namespace ApiTrocaLivros.Models
 {
@@ -42,6 +39,9 @@ namespace ApiTrocaLivros.Models
         public int Year { get; set; }
         
         public string? Sinopse { get; set; }
+        
+        [StringLength(200)]
+        public string? CoverImageUrl { get; set; }
         
         [Required]
         public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;

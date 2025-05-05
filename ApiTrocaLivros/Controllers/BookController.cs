@@ -1,6 +1,4 @@
-﻿using ApiTrocaLivros.Data;
-using ApiTrocaLivros.DTOs;
-using ApiTrocaLivros.Models;
+﻿using ApiTrocaLivros.DTOs;
 using ApiTrocaLivros.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -178,16 +176,23 @@ namespace ApiTrocaLivros.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ActionResult> CreateBook(BookDTOs.BookRequestDTO dto)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult> CreateBook([FromForm] BookDTOs.BookRequestDTO dto)
         {
             try
             {
                 var createdBook = await _bookService.Create(dto);
+                
+                if (dto.CoverImage is not null)
+                {
+                    await _bookService.UploadCoverImageAsync(createdBook.BookId, dto.CoverImage);
+                }
 
-                return CreatedAtAction(
-                    nameof(GetBookById),
-                    routeValues: new { id = createdBook.BookId },
-                    createdBook);
+                var full = await _bookService.Get(createdBook.BookId);
+                        return CreatedAtAction(
+                                nameof(GetBookById),
+                                new { id = full.BookId },
+                                full);
             }
             catch (ArgumentException ex)
             {
@@ -205,12 +210,18 @@ namespace ApiTrocaLivros.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<ActionResult> UpdateBook(int id, BookDTOs.BookUpdateRequestDTO dto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateBook(
+            int id,
+            [FromForm] BookDTOs.BookUpdateRequestDTO dto)
         {
             try
             {
-                await _bookService.Update(id, dto);
-                return Ok(new { message = "Livro atualizado com sucesso." });
+                // Atualiza campos + capa se houver
+                var updated = await _bookService.Update(id, dto);
+
+                // Retorna o DTO completo (já inclui CoverImageUrl)
+                return Ok(updated);
             }
             catch (KeyNotFoundException ex)
             {
@@ -224,15 +235,9 @@ namespace ApiTrocaLivros.Controllers
             {
                 return BadRequest(ex.Message);
             }
-            catch (DbUpdateException ex)
+            catch
             {
-                // Log the error if needed
-                return StatusCode(StatusCodes.Status500InternalServerError, "Erro ao atualizar livro!");
-            }
-            catch (Exception ex)
-            {
-                // Log the unexpected error
-                return StatusCode(StatusCodes.Status500InternalServerError, "Erro interno no servidor");
+                return StatusCode(500, "Erro ao atualizar livro.");
             }
         }
 

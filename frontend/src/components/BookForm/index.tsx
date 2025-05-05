@@ -1,32 +1,34 @@
-// components/BookForm.tsx
+// src/components/BookForm.tsx
 import React from 'react';
 import styles from './styles.module.scss';
 
-interface Book {
+export interface BookRequestDTO {
   title: string;
   author: string;
   genre: string;
   publisher: string;
-  year: number;
   pages: number;
+  year: number;
   sinopse?: string;
+  coverImage?: File;
   isAvailable?: boolean;
 }
 
 interface BookFormProps {
   title: string;
-  bookData: Book;
+  bookData: BookRequestDTO;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
 }
 
-const BookForm: React.FC<BookFormProps> = ({ title, bookData, onChange, onSubmit, onClose }) => {
+const BookForm: React.FC<BookFormProps> = ({ title, bookData, onChange, onFileChange, onSubmit, onClose }) => {
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modal}>
         <h2>{title}</h2>
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} encType="multipart/form-data">
           <div className={styles.formGroup}>
             <label>Título*</label>
             <input
@@ -112,7 +114,17 @@ const BookForm: React.FC<BookFormProps> = ({ title, bookData, onChange, onSubmit
             />
           </div>
 
-          {title === "Editar Livro" && (
+          <div className={styles.formGroup}>
+            <label>Capa</label>
+            <input
+              type="file"
+              name="coverImage"
+              accept="image/png, image/jpeg"
+              onChange={onFileChange}
+            />
+          </div>
+
+          {title === 'Editar Livro' && (
             <div className={styles.formGroup}>
               <label>
                 <input
@@ -128,7 +140,7 @@ const BookForm: React.FC<BookFormProps> = ({ title, bookData, onChange, onSubmit
 
           <div className={styles.modalActions}>
             <button type="submit" className={styles.saveButton}>
-              Salvar {title === "Editar Livro" ? "Alterações" : "Livro"}
+              Salvar {title === 'Editar Livro' ? 'Alterações' : 'Livro'}
             </button>
             <button
               type="button"
