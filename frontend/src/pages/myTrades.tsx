@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
-import styles from './myTrades.module.scss';
-import { TradeService } from '../services/tradeServices';
+import React, { useState, useEffect } from "react";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
+import styles from "./myTrades.module.scss";
+import { TradeService } from "../services/tradeServices";
 
 interface Book {
   bookId: number;
@@ -27,7 +27,8 @@ interface Trade {
   createdAt: string;
   updatedAt: string;
   status: string;
-  contactInfo?: string; // Adicionado para incluir o campo contactInfo
+  email?: string; // Atualizado para armazenar diretamente o email
+  telefone?: string; // Atualizado para armazenar diretamente o telefone
   offeredBook: Book;
   targetBook: Book;
 }
@@ -36,27 +37,138 @@ const MyTrades = () => {
   const [requestedTrades, setRequestedTrades] = useState<Trade[]>([]);
   const [receivedTrades, setReceivedTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [contactInput, setContactInput] = useState<{ [key: number]: string }>({}); // Estado para armazenar contactInfo por ID de troca
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalTradeId, setModalTradeId] = useState<number | null>(null);
+  const [contactInfo, setContactInfo] = useState<{ email?: string; telefone?: string }>({
+    email: "",
+    telefone: ""
+  });
+
+  // Função para lidar com ações dos botões de troca
+  const handleTradeAction = async (
+    tradeId: number,
+    action: "accept" | "reject" | "cancel" | "complete"
+  ) => {
+    const statusMap = {
+      accept: "Accepted",
+      reject: "Rejected",
+      cancel: "Cancelled",
+      complete: "Completed",
+    };
+
+    const actionTextMap = {
+      accept: "aceitar",
+      reject: "rejeitar",
+      cancel: "cancelar",
+      complete: "concluir",
+    };
+
+    try {
+      setError(""); // Limpa os erros antes da ação
+
+      // Atualiza o status no backend
+      const updatedTrade = await TradeService.changeStatus(
+        tradeId,
+        statusMap[action]
+      );
+
+      // Atualiza o estado local para refletir a mudança
+      setRequestedTrades((prev) =>
+        prev.map((trade) =>
+          trade.tradeId === tradeId
+            ? { ...trade, status: updatedTrade.status }
+            : trade
+        )
+      );
+
+      setReceivedTrades((prev) =>
+        prev.map((trade) =>
+          trade.tradeId === tradeId
+            ? { ...trade, status: updatedTrade.status }
+            : trade
+        )
+      );
+    } catch (err) {
+      console.error(`Erro ao ${actionTextMap[action]} troca ${tradeId}`, err);
+      setError(
+        `Erro ao ${actionTextMap[action]} troca: ${
+          err instanceof Error ? err.message : "Erro desconhecido"
+        }`
+      );
+    }
+  };
+
+  // Função para enviar as informações de contato
+  const handleContactInfoSubmit = async () => {
+    if (!contactInfo.email?.trim() && !contactInfo.telefone?.trim()) {
+      alert("Por favor, insira pelo menos um e-mail ou telefone.");
+      return;
+    }
+
+    try {
+      const updatedTrade = await TradeService.updateContactInfo(modalTradeId!, {
+        email: contactInfo.email?.trim() || null,
+        telefone: contactInfo.telefone?.trim() || null,
+      });
+
+      // Atualiza o estado local com os dados retornados do backend
+      setRequestedTrades((prev) =>
+        prev.map((trade) =>
+          trade.tradeId === modalTradeId
+            ? { ...trade, email: updatedTrade.email, telefone: updatedTrade.telefone }
+            : trade
+        )
+      );
+
+      setReceivedTrades((prev) =>
+        prev.map((trade) =>
+          trade.tradeId === modalTradeId
+            ? { ...trade, email: updatedTrade.email, telefone: updatedTrade.telefone }
+            : trade
+        )
+      );
+
+      setShowModal(false);
+      setContactInfo({ email: "", telefone: "" });
+    } catch (err) {
+      console.error("Erro ao enviar informações de contato:", err);
+      alert(
+        "Ocorreu um erro ao enviar as informações de contato. Tente novamente."
+      );
+    }
+  };
 
   useEffect(() => {
     const fetchTrades = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const [myRequests, receivedRequests] = await Promise.all([
-          TradeService.getMyRequests(),
-          TradeService.getReceivedRequests()
-        ]);
+      setLoading(true);
+      setError("");
+      let myRequests: Trade[] = [];
+      let receivedRequests: Trade[] = [];
 
-        setRequestedTrades(myRequests);
-        setReceivedTrades(receivedRequests);
+      try {
+        // Busca as trocas solicitadas e recebidas separadamente
+        myRequests = await TradeService.getMyRequests();
       } catch (err) {
-        setError('Erro ao carregar suas trocas: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
-        console.error('[ERRO] Falha ao buscar trocas:', err);
-      } finally {
-        setLoading(false);
+        console.error("[ERRO] Falha ao buscar trocas solicitadas:", err);
+        setError("Erro ao carregar suas solicitações.");
       }
+
+      try {
+        receivedRequests = await TradeService.getReceivedRequests();
+      } catch (err) {
+        console.error("[ERRO] Falha ao buscar trocas recebidas:", err);
+        setError((prevError) =>
+          prevError
+            ? prevError + " E ao carregar solicitações recebidas."
+            : "Erro ao carregar solicitações recebidas."
+        );
+      }
+
+      // Atualiza os estados mesmo que uma das requisições falhe
+      setRequestedTrades(myRequests);
+      setReceivedTrades(receivedRequests);
+      setLoading(false);
     };
 
     fetchTrades();
@@ -64,12 +176,12 @@ const MyTrades = () => {
 
   const renderStatusBadge = (status: string) => {
     const statusMap = {
-      Pending: { color: '#f39c12', bg: '#fef5e6', text: 'Pendente' },
-      Accepted: { color: '#27ae60', bg: '#e8f8f0', text: 'Aceita' },
-      Rejected: { color: '#e74c3c', bg: '#fdedec', text: 'Rejeitada' },
-      Completed: { color: '#3498db', bg: '#eaf2f8', text: 'Concluída' },
-      Cancelled: { color: '#95a5a6', bg: '#f2f4f4', text: 'Cancelada' },
-      DEFAULT: { color: '#7f8c8d', bg: '#ecf0f1', text: status }
+      Pending: { color: "#f39c12", bg: "#fef5e6", text: "Pendente" },
+      Accepted: { color: "#27ae60", bg: "#e8f8f0", text: "Aceita" },
+      Rejected: { color: "#e74c3c", bg: "#fdedec", text: "Rejeitada" },
+      Completed: { color: "#3498db", bg: "#eaf2f8", text: "Concluída" },
+      Cancelled: { color: "#95a5a6", bg: "#f2f4f4", text: "Cancelada" },
+      DEFAULT: { color: "#7f8c8d", bg: "#ecf0f1", text: status },
     };
     const style = statusMap[status as keyof typeof statusMap] || statusMap.DEFAULT;
     const text = style.text;
@@ -78,11 +190,11 @@ const MyTrades = () => {
         style={{
           backgroundColor: style.bg,
           color: style.color,
-          padding: '0.25rem 0.5rem',
-          borderRadius: '4px',
-          fontSize: '0.85rem',
-          fontWeight: '600',
-          whiteSpace: 'nowrap'
+          padding: "0.25rem 0.5rem",
+          borderRadius: "4px",
+          fontSize: "0.85rem",
+          fontWeight: "600",
+          whiteSpace: "nowrap",
         }}
       >
         {text}
@@ -90,80 +202,18 @@ const MyTrades = () => {
     );
   };
 
-  const handleTradeAction = async (
-    tradeId: number,
-    action: 'accept' | 'reject' | 'cancel' | 'complete'
-  ) => {
-    const statusMapToAction = {
-      accept: 'Accepted',
-      reject: 'Rejected',
-      cancel: 'Cancelled',
-      complete: 'Completed'
-    };
-    const actionTextMap = {
-      accept: 'aceitar',
-      reject: 'rejeitar',
-      cancel: 'cancelar',
-      complete: 'concluir'
-    };
-    const newStatus = statusMapToAction[action];
-    const actionText = actionTextMap[action];
-    try {
-      setError('');
-      await TradeService.changeStatus(tradeId, newStatus);
-      setRequestedTrades((prev) =>
-        prev.map((t) => (t.tradeId === tradeId ? { ...t, status: newStatus } : t))
-      );
-      setReceivedTrades((prev) =>
-        prev.map((t) => (t.tradeId === tradeId ? { ...t, status: newStatus } : t))
-      );
-    } catch (err) {
-      console.error(`Erro ao ${actionText} troca ${tradeId}`, err);
-      setError(
-        `Erro ao ${actionText} troca: ${
-          err instanceof Error ? err.message : 'Erro desconhecido'
-        }`
-      );
-    }
-  };
-
-  const handleContactInfoSubmit = async (tradeId: number) => {
-    const contactInfo = contactInput[tradeId];
-    if (!contactInfo) {
-      setError('Você precisa fornecer informações de contato.');
-      return;
-    }
-    try {
-      setError('');
-      const updatedTrade = await TradeService.updateContactInfo(tradeId, contactInfo);
-      setRequestedTrades((prev) =>
-        prev.map((trade) =>
-          trade.tradeId === tradeId ? { ...trade, contactInfo } : trade
-        )
-      );
-      setReceivedTrades((prev) =>
-        prev.map((trade) =>
-          trade.tradeId === tradeId ? { ...trade, contactInfo } : trade
-        )
-      );
-      setContactInput((prev) => ({ ...prev, [tradeId]: '' })); // Limpa o valor do input após o envio
-    } catch (err) {
-      console.error('Erro ao enviar informações de contato:', err);
-      setError(
-        `Erro ao enviar informações de contato: ${
-          err instanceof Error ? err.message : 'Erro desconhecido'
-        }`
-      );
-    }
-  };
-
   const TradeBook = ({ book }: { book: Book }) => {
+    const baseUrl = "http://localhost:5185"; // Ajuste conforme necessário para o seu ambiente
+    const imageSrc = book.coverImageUrl?.startsWith("/")
+      ? `${baseUrl}${book.coverImageUrl}`
+      : `${baseUrl}/images/${book.coverImageUrl}`;
+
     return (
       <div className={styles.tradeBookCard}>
         <div className={styles.bookCover}>
           {book.coverImageUrl ? (
             <img
-              src={book.coverImageUrl}
+              src={imageSrc}
               alt={`Capa de ${book.title}`}
               className={styles.coverImage}
             />
@@ -187,61 +237,101 @@ const MyTrades = () => {
 
   const TradeCardDisplay = ({
     trade,
-    type
+    type,
   }: {
     trade: Trade;
-    type: 'requested' | 'received';
+    type: "requested" | "received";
   }) => {
-    const isReceived = type === 'received';
+    const isReceived = type === "received";
 
     return (
       <div className={styles.tradeCard}>
         <div className={styles.tradeHeader}>
           <span className={styles.tradeDate}>
-            {new Date(trade.createdAt).toLocaleDateString('pt-BR', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric'
+            {new Date(trade.createdAt).toLocaleDateString("pt-BR", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
             })}
           </span>
           {renderStatusBadge(trade.status)}
         </div>
         <div className={styles.booksContainer}>
           <div className={styles.tradeBookSection}>
-            <h4>{isReceived ? 'Livro Oferecido por quem solicitou:' : 'Você ofereceu:'}</h4>
+            <h4>
+              {isReceived
+                ? "Livro Oferecido por quem solicitou:"
+                : "Você ofereceu:"}
+            </h4>
             <TradeBook book={trade.offeredBook} />
           </div>
           <div className={styles.tradeBookSection}>
-            <h4>{isReceived ? 'Seu livro solicitado:' : 'Você solicitou:'}</h4>
+            <h4>{isReceived ? "Seu livro solicitado:" : "Você solicitou:"}</h4>
             <TradeBook book={trade.targetBook} />
           </div>
         </div>
         <div className={styles.actions}>
-          {trade.status === 'Completed' && !trade.contactInfo && (
-            <div className={styles.contactForm}>
-              <input
-                type="text"
-                placeholder="Forneça informações de contato"
-                value={contactInput[trade.tradeId] || ''}
-                onChange={(e) =>
-                  setContactInput((prev) => ({
-                    ...prev,
-                    [trade.tradeId]: e.target.value
-                  }))
-                }
-              />
+          {trade.status === "Pending" && isReceived && (
+            <>
               <button
-                onClick={() => handleContactInfoSubmit(trade.tradeId)}
-                className={`${styles.actionButton} ${styles.contactButton}`}
+                onClick={() => handleTradeAction(trade.tradeId, "accept")}
+                className={`${styles.actionButton} ${styles.acceptButton}`}
               >
-                Enviar Contato
+                Aceitar
               </button>
-            </div>
+              <button
+                onClick={() => handleTradeAction(trade.tradeId, "reject")}
+                className={`${styles.actionButton} ${styles.rejectButton}`}
+              >
+                Recusar
+              </button>
+            </>
           )}
-          {trade.contactInfo && (
-            <p className={styles.contactInfo}>
-              Contato: <strong>{trade.contactInfo}</strong>
-            </p>
+          {trade.status === "Pending" && !isReceived && (
+            <button
+              onClick={() => handleTradeAction(trade.tradeId, "cancel")}
+              className={`${styles.actionButton} ${styles.cancelButton}`}
+            >
+              Cancelar
+            </button>
+          )}
+          {trade.status === "Accepted" && !isReceived && (
+            <button
+              onClick={() => handleTradeAction(trade.tradeId, "complete")}
+              className={`${styles.actionButton} ${styles.completeButton}`}
+            >
+              Concluir
+            </button>
+          )}
+          {trade.status === "Completed" && !isReceived && !trade.email && !trade.telefone && (
+            <button
+              onClick={() => {
+                setShowModal(true);
+                setModalTradeId(trade.tradeId);
+              }}
+              className={`${styles.actionButton} ${styles.contactButton}`}
+            >
+              Enviar Contato
+            </button>
+          )}
+          
+          
+          {(trade.email || trade.telefone) && (
+            <div className={styles.contactCard}>
+              <h4 className={styles.contactTitle}>Informações de Contato</h4>
+              {trade.email && (
+                <p className={styles.contactItem}>
+                  <span className={styles.contactIcon}>📧</span>
+                  {trade.email}
+                </p>
+              )}
+              {trade.telefone && (
+                <p className={styles.contactItem}>
+                  <span className={styles.contactIcon}>📞</span>
+                  {trade.telefone}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -283,7 +373,9 @@ const MyTrades = () => {
               )}
             </section>
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Solicitações de troca recebidas</h2>
+              <h2 className={styles.sectionTitle}>
+                Solicitações de troca recebidas
+              </h2>
               {receivedTrades.length === 0 ? (
                 <div className={styles.emptyState}>
                   <p>Você não recebeu nenhuma solicitação de troca.</p>
@@ -304,6 +396,60 @@ const MyTrades = () => {
         )}
       </main>
       <Footer />
+
+      {showModal && (
+        <div className={styles.modal}>
+          <div className={styles.modalContent}>
+            <h2 className={styles.modalTitle}>Envie suas Informações de Contato</h2>
+            <form
+              className={styles.contactForm}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleContactInfoSubmit();
+              }}
+            >
+              <label htmlFor="email" className={styles.modalLabel}>
+                E-mail:
+                <input
+                  id="email"
+                  type="email"
+                  value={contactInfo.email}
+                  onChange={(e) =>
+                    setContactInfo((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  placeholder="Digite seu e-mail"
+                  className={styles.modalInput}
+                />
+              </label>
+              <label htmlFor="telefone" className={styles.modalLabel}>
+                Telefone:
+                <input
+                  id="telefone"
+                  type="text"
+                  value={contactInfo.telefone}
+                  onChange={(e) =>
+                    setContactInfo((prev) => ({ ...prev, telefone: e.target.value }))
+                  }
+                  placeholder="Digite seu telefone"
+                  className={styles.modalInput}
+                />
+              </label>
+              <div className={styles.modalActions}>
+                <button type="submit" className={styles.submitButton}>
+                  Enviar
+                </button>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

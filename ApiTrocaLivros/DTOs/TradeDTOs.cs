@@ -45,9 +45,19 @@ namespace ApiTrocaLivros.DTOs
             public DateTime? UpdatedAt { get; set; }
             [JsonConverter(typeof(JsonStringEnumConverter))]
             public TradeStatus Status { get; set; }
+            
+            public String? Email { get; set; }
+            public String? Telefone { get; set; }
+            
             public BookDTOs.BookResponseDTO OfferedBook { get; set; }
             public BookDTOs.BookResponseDTO TargetBook  { get; set; }
             public UserDTOs.UserResponseDTO Requester   { get; set; }
+        }
+        
+        public class TradeContactInfoDTO
+        {
+            public string? Email { get; set; }
+            public string? Telefone { get; set; }
         }
         
         /// 5) Opcional: filtros para listar trocas (via query string).

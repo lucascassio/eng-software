@@ -108,11 +108,6 @@ namespace ApiTrocaLivros.Controllers
                 var trades = await _tradeService.GetAllByRequesterId();
                 return Ok(trades);
             }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogWarning("Nenhuma troca solicitada encontrada para o usuário.");
-                return NotFound(new { Message = ex.Message });
-            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro ao listar trocas solicitadas.");
@@ -174,6 +169,38 @@ namespace ApiTrocaLivros.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
             }
         }
+        
+        [HttpPatch("{id}/contact-info")]
+        [Authorize]
+        public async Task<IActionResult> UpdateContactInfo(int id, [FromBody] TradeDTOs.TradeContactInfoDTO dto)
+        {
+            try
+            {
+                if (dto == null || (string.IsNullOrWhiteSpace(dto.Email) && string.IsNullOrWhiteSpace(dto.Telefone)))
+                {
+                    return BadRequest(new { Message = "Pelo menos um contato (e-mail ou telefone) deve ser fornecido." });
+                }
+
+                var updatedTrade = await _tradeService.UpdateContactInfo(id, dto.Email, dto.Telefone);
+                return Ok(updatedTrade);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Troca com ID {Id} não encontrada para atualização de informações de contato.", id);
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Usuário não autorizado a atualizar informações de contato da troca com ID {Id}.", id);
+                return Forbid();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar informações de contato da troca com ID {Id}.", id);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Erro interno no servidor." });
+            }
+        }
+        
         
         // Adicione esta classe no namespace ApiTrocaLivros.DTOs
         public class StatusUpdateDTO

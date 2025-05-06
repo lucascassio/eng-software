@@ -112,18 +112,14 @@ export const TradeService = {
     }
   },
 
-  // Atualizar informações de contato de uma troca
-  async updateContactInfo(id: number, contactInfo: string): Promise<Trade> {
+  async updateContactInfo(id: number, contactInfo: { email?: string; telefone?: string }): Promise<Trade> {
     try {
-      const response = await axios.patch(
-        `${API_BASE_URL}/trades/${id}/contact-info`,
-        { contactInfo: contactInfo },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await axios.patch(`${API_BASE_URL}/trades/${id}/contact-info`, contactInfo, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log("Dados enviados ao backend:", contactInfo); // Log para verificar o que está sendo enviado
       return response.data;
     } catch (error) {
       handleAxiosError(error, 'Erro ao atualizar informações de contato da troca');

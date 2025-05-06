@@ -1,33 +1,28 @@
 import React, { useState } from 'react';
 import styles from './profile.module.scss';
-
-interface UserProfile {
-  name: string;
-  bio: string;
-  photo: string;
-}
+import { UserProfile, UpdateUserDTO } from '../services/userService';
 
 interface ProfileFormProps {
   user: UserProfile;
   onClose: () => void;
-  onSave: (updatedUser: UserProfile) => void;
+  onSave: (updatedUser: UpdateUserDTO) => void;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ user, onClose, onSave }) => {
   const [name, setName] = useState(user.name);
-  const [bio, setBio] = useState(user.bio);
-  const [photo, setPhoto] = useState(user.photo);
+  const [email, setEmail] = useState(user.email);
+  const [course, setCourse] = useState(user.course);
+  const [isActive, setIsActive] = useState(user.isActive);
 
-  // Função chamada ao submeter o formulário
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name, bio, photo });
+    onSave({ name, email, course, isActive });
   };
 
   return (
     <div className={styles.modalOverlay}>
       <div className={styles.modalContent}>
-        <h2>Editar Perfil</h2>
+        <h2 className={styles.modalTitle}>Editar Perfil</h2>
         <form onSubmit={handleSubmit} className={styles.profileForm}>
           <label>
             Nome:
@@ -40,21 +35,34 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ user, onClose, onSave }) => {
           </label>
 
           <label>
-            Biografia:
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={4}
+            Email:
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </label>
 
           <label>
-            Foto (URL):
+            Curso:
             <input
               type="text"
-              value={photo}
-              onChange={(e) => setPhoto(e.target.value)}
+              value={course}
+              onChange={(e) => setCourse(e.target.value)}
+              required
             />
+          </label>
+
+          <label>
+            Status:
+            <select
+              value={isActive ? 'true' : 'false'}
+              onChange={(e) => setIsActive(e.target.value === 'true')}
+            >
+              <option value="true">Ativo</option>
+              <option value="false">Inativo</option>
+            </select>
           </label>
 
           <div className={styles.modalButtons}>

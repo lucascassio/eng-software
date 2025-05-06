@@ -176,6 +176,9 @@ namespace ApiTrocaLivros.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
                     b.Property<int>("OfferedBookId")
                         .HasColumnType("integer");
 
@@ -187,6 +190,9 @@ namespace ApiTrocaLivros.Migrations
 
                     b.Property<int>("TargetBookId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Telefone")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
