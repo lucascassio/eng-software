@@ -423,3 +423,70 @@
         padding: 0.1rem 0.5rem;
     }
 }
+
+.contactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: #2c3e50; // Cor de fundo consistente com o design
+  border: 1px solid rgba(255, 255, 255, 0.2); // Borda sutil para destaque
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); // Sombra suave para destaque
+
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.3); // Borda clara para destaque
+    border-radius: 4px;
+    font-size: 1rem;
+    color: #ffffff; // Texto branco para contraste
+    background-color: #34495e; // Fundo consistente com o design
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); // Efeito de profundidade interno
+    transition: border 0.2s ease;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.6); // Placeholder com opacidade reduzida
+    }
+
+    &:focus {
+      outline: none;
+      border: 1px solid #00aaff; // Destaque azul ao focar
+      box-shadow: 0 0 4px #00aaff; // Glow leve ao focar
+    }
+  }
+
+  button {
+    padding: 0.75rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #00aaff; // Azul consistente com o design
+    color: white; // Texto branco
+    text-align: center;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: #0088cc; // Azul mais escuro ao passar o mouse
+    }
+
+    &:active {
+      transform: translateY(2px); // Efeito de clique
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+.contactInfo {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8); // Texto claro
+  background-color: rgba(0, 170, 255, 0.1); // Fundo azul claro semitransparente
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 170, 255, 0.3); // Borda azul clara
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-weight: 600;
+  text-align: center; // Centraliza o texto
+}
