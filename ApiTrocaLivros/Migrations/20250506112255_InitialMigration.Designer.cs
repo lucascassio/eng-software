@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiTrocaLivros.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250505153842_InitialMigration")]
+    [Migration("20250506112255_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -179,6 +179,9 @@ namespace ApiTrocaLivros.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
                     b.Property<int>("OfferedBookId")
                         .HasColumnType("integer");
 
@@ -190,6 +193,9 @@ namespace ApiTrocaLivros.Migrations
 
                     b.Property<int>("TargetBookId")
                         .HasColumnType("integer");
+
+                    b.Property<string>("Telefone")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

@@ -115,6 +115,8 @@ namespace ApiTrocaLivros.Services
         public async Task<List<TradeDTOs.TradeResponseDTO>> GetAllByRequesterId()
         {
             var requesterId = GetCurrentUserId();
+
+            // Busca as trocas solicitadas pelo usuário autenticado
             var trades = await _context.Trades
                 .Include(t => t.OfferedBook)
                 .Include(t => t.TargetBook)
@@ -122,12 +124,10 @@ namespace ApiTrocaLivros.Services
                 .Where(t => t.RequesterId == requesterId)
                 .ToListAsync();
 
-            if (!trades.Any())
-                throw new KeyNotFoundException("Você não possui nenhuma troca.");
-
+            // Mapeia a lista de trocas para o formato DTO (se vazia, retornará uma lista vazia)
             return trades.Select(MapToDTO).ToList();
         }
-
+        
         // Lista todas as solicitações recebidas para os livros do usuário autenticado
         public async Task<List<TradeDTOs.TradeResponseDTO>> GetAllReceivedRequests()
         {
@@ -221,59 +221,99 @@ namespace ApiTrocaLivros.Services
             }
         }
         
-        // Mapeia a entidade Trade para o DTO
-        private static TradeDTOs.TradeResponseDTO MapToDTO(Trade trade)
+        public async Task<TradeDTOs.TradeResponseDTO> UpdateContactInfo(int id, string? email, string? telefone)
         {
-            return new TradeDTOs.TradeResponseDTO
-            {
-                TradeId       = trade.TradeID,
-                RequesterId   = trade.RequesterId,
-                OfferedBookId = trade.OfferedBookId,
-                TargetBookId  = trade.TargetBookId,
-                CreatedAt     = trade.CreatedAt,
-                UpdatedAt     = trade.UpdatedAt,
-                Status        = trade.Status,
+            // Carrega a troca e os objetos relacionados
+            var trade = await _context.Trades
+                            .Include(t => t.OfferedBook)
+                            .Include(t => t.TargetBook)
+                            .Include(t => t.Requester)
+                            .FirstOrDefaultAsync(t => t.TradeID == id)
+                        ?? throw new KeyNotFoundException($"Troca com ID '{id}' não encontrada.");
 
-                OfferedBook = new BookDTOs.BookResponseDTO
-                {
-                    CoverImageUrl    = trade.OfferedBook.CoverImageUrl ?? string.Empty, // Corrigido para evitar null
-                    BookId           = trade.OfferedBook.BookId,
-                    OwnerId          = trade.OfferedBook.OwnerId,
-                    Title            = trade.OfferedBook.Title,
-                    Author           = trade.OfferedBook.Author,
-                    Genre            = trade.OfferedBook.Genre,
-                    Publisher        = trade.OfferedBook.Publisher,
-                    Pages            = trade.OfferedBook.Pages,
-                    Year             = trade.OfferedBook.Year,
-                    Sinopse          = trade.OfferedBook.Sinopse,
-                    RegistrationDate = trade.OfferedBook.RegistrationDate,
-                    IsAvailable      = trade.OfferedBook.IsAvaiable
-                },
-                TargetBook = new BookDTOs.BookResponseDTO
-                {
-                    CoverImageUrl    = trade.TargetBook.CoverImageUrl ?? string.Empty, // Corrigido para evitar null
-                    BookId           = trade.TargetBook.BookId,
-                    OwnerId          = trade.TargetBook.OwnerId,
-                    Title            = trade.TargetBook.Title,
-                    Author           = trade.TargetBook.Author,
-                    Genre            = trade.TargetBook.Genre,
-                    Publisher        = trade.TargetBook.Publisher,
-                    Pages            = trade.TargetBook.Pages,
-                    Year             = trade.TargetBook.Year,
-                    Sinopse          = trade.TargetBook.Sinopse,
-                    RegistrationDate = trade.TargetBook.RegistrationDate,
-                    IsAvailable      = trade.TargetBook.IsAvaiable
-                },
-                Requester = new UserDTOs.UserResponseDTO
-                {
-                    Id               = trade.Requester.Id,
-                    Name             = trade.Requester.Name,
-                    Email            = trade.Requester.Email,
-                    Course           = trade.Requester.Course,
-                    RegistrationDate = trade.Requester.RegistrationDate,
-                    IsActive         = trade.Requester.IsActive
-                }
-            };
+            var userId = GetCurrentUserId();
+
+            // Valida se o usuário tem permissão para atualizar
+            if (trade.RequesterId != userId)
+                throw new UnauthorizedAccessException("Você não tem permissão para atualizar as informações de contato desta troca.");
+
+            // Verifica se a troca está concluída
+            if (trade.Status != TradeStatus.Completed)
+                throw new InvalidOperationException("As informações de contato só podem ser adicionadas para trocas concluídas.");
+
+            // Atualiza os campos de contato
+            trade.Email = email?.Trim(); // Usa Trim para remover espaços extras
+            trade.Telefone = telefone?.Trim(); // Usa Trim para remover espaços extras
+            trade.UpdatedAt = DateTime.UtcNow;
+
+            // Salva as mudanças no banco de dados
+            var rowsAffected = await _context.SaveChangesAsync();
+            if (rowsAffected == 0)
+                throw new Exception("Nenhuma linha foi atualizada no banco de dados.");
+
+            // Retorna o DTO atualizado
+            return MapToDTO(trade);
         }
+        
+    private static TradeDTOs.TradeResponseDTO MapToDTO(Trade trade)
+    {
+        if (trade == null)
+            throw new ArgumentNullException(nameof(trade), "A troca fornecida é nula.");
+
+        return new TradeDTOs.TradeResponseDTO
+        {
+            TradeId = trade.TradeID,
+            RequesterId = trade.RequesterId,
+            OfferedBookId = trade.OfferedBookId,
+            TargetBookId = trade.TargetBookId,
+            CreatedAt = trade.CreatedAt,
+            UpdatedAt = trade.UpdatedAt,
+            Status = trade.Status,
+            Email = trade.Email ?? string.Empty, // Padroniza valores nulos como string vazia
+            Telefone = trade.Telefone ?? string.Empty, // Padroniza valores nulos como string vazia
+
+            OfferedBook = trade.OfferedBook != null ? new BookDTOs.BookResponseDTO
+            {
+                BookId = trade.OfferedBook.BookId,
+                OwnerId = trade.OfferedBook.OwnerId,
+                Title = trade.OfferedBook.Title,
+                Author = trade.OfferedBook.Author,
+                Genre = trade.OfferedBook.Genre,
+                Publisher = trade.OfferedBook.Publisher,
+                Pages = trade.OfferedBook.Pages,
+                Year = trade.OfferedBook.Year,
+                Sinopse = trade.OfferedBook.Sinopse ?? string.Empty,
+                RegistrationDate = trade.OfferedBook.RegistrationDate,
+                IsAvailable = trade.OfferedBook.IsAvaiable,
+                CoverImageUrl = trade.OfferedBook.CoverImageUrl ?? string.Empty
+            } : null,
+
+            TargetBook = trade.TargetBook != null ? new BookDTOs.BookResponseDTO
+            {
+                BookId = trade.TargetBook.BookId,
+                OwnerId = trade.TargetBook.OwnerId,
+                Title = trade.TargetBook.Title,
+                Author = trade.TargetBook.Author,
+                Genre = trade.TargetBook.Genre,
+                Publisher = trade.TargetBook.Publisher,
+                Pages = trade.TargetBook.Pages,
+                Year = trade.TargetBook.Year,
+                Sinopse = trade.TargetBook.Sinopse ?? string.Empty,
+                RegistrationDate = trade.TargetBook.RegistrationDate,
+                IsAvailable = trade.TargetBook.IsAvaiable,
+                CoverImageUrl = trade.TargetBook.CoverImageUrl ?? string.Empty
+            } : null,
+
+            Requester = trade.Requester != null ? new UserDTOs.UserResponseDTO
+            {
+                Id = trade.Requester.Id,
+                Name = trade.Requester.Name,
+                Email = trade.Requester.Email,
+                Course = trade.Requester.Course,
+                RegistrationDate = trade.Requester.RegistrationDate,
+                IsActive = trade.Requester.IsActive
+            } : null
+        };
+    }
     }
 }

@@ -35,6 +35,8 @@ namespace ApiTrocaLivros.Models
         
         [Required]
         public TradeStatus Status { get; set; }
+        public string? Email { get; set; }
+        public string? Telefone { get; set; }
         
         // status no ciclo de vida da troca:
         // Pending → Accepted → Completed

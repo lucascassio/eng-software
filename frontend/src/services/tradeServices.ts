@@ -1,5 +1,3 @@
-// src/services/tradeServices.ts
-
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -36,6 +34,7 @@ export interface Trade {
   createdAt: string;
   updatedAt: string;
   status: string;
+  contactInfo?: string; // Adicionado para incluir o campo contactInfo
   offeredBook: Book;
   targetBook: Book;
   requester: User;
@@ -97,19 +96,35 @@ export const TradeService = {
   // Alterar status de uma troca (aceitar, recusar, cancelar, concluir)
   async changeStatus(id: number, status: string): Promise<Trade> {
     try {
-        // Send a JSON object with a status property, not a raw string
-        const response = await axios.patch(`${API_BASE_URL}/trades/${id}/status`, 
-            { status: status },  // ← This is the key change
-            {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-        return response.data;
+      // Envia o status como um objeto JSON
+      const response = await axios.patch(
+        `${API_BASE_URL}/trades/${id}/status`,
+        { status: status },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data;
     } catch (error) {
-        handleAxiosError(error, 'Erro ao alterar status da troca');
+      handleAxiosError(error, 'Erro ao alterar status da troca');
     }
-}
+  },
+
+  async updateContactInfo(id: number, contactInfo: { email?: string; telefone?: string }): Promise<Trade> {
+    try {
+      const response = await axios.patch(`${API_BASE_URL}/trades/${id}/contact-info`, contactInfo, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log("Dados enviados ao backend:", contactInfo); // Log para verificar o que está sendo enviado
+      return response.data;
+    } catch (error) {
+      handleAxiosError(error, 'Erro ao atualizar informações de contato da troca');
+    }
+  },
 };
 
 // Função utilitária para tratar erros de forma padronizada
@@ -122,7 +137,7 @@ function handleAxiosError(error: unknown, defaultMessage: string): never {
 }
 
 // Configura o axios para sempre mandar o token automaticamente
-axios.interceptors.request.use(config => {
+axios.interceptors.request.use((config) => {
   const token = Cookies.get('authToken');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
