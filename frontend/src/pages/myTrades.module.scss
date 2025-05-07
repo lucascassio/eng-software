@@ -1,4 +1,4 @@
-/* Cores Originais Mantidas */
+/* Cores Originais Mantidas (com exceção da alteração no .actionButton e a anterior no .contactForm button) */
 
 .pageContainer {
   display: flex;
@@ -247,7 +247,7 @@
   flex-wrap: wrap;
 }
 
-.actionButton {
+.actionButton { /* MODIFICAÇÃO APLICADA AQUI (SUPOSIÇÃO) */
   flex: 1 1 auto;
   padding: 0.75rem;
   border: none;
@@ -261,8 +261,13 @@
   align-items: center;
   justify-content: center;
   color: white;
+  background-color: #3498db; /* COR DE FUNDO AZUL ADICIONADA */
   text-align: center;
   min-width: 100px;
+
+  &:hover {
+    background-color: #2980b9; /* HOVER AZUL ADICIONADO */
+  }
 
   &:active {
     transform: translateY(2px);
@@ -270,23 +275,28 @@
   }
 }
 
+/* Botões específicos que podem sobrescrever .actionButton ou ser usados em conjunto */
 .acceptButton {
-  background-color: #00aaff;
+  background-color: #00aaff; /* Mantido como antes, seletor mais específico que .actionButton */
+  color: white;
   &:hover { background-color: #0088cc; }
 }
 
 .completeButton {
-  background-color: #3498db;
+  background-color: #3498db; /* Mantido como antes, seletor mais específico que .actionButton */
+  color: white;
   &:hover { background-color: #2980b9; }
 }
 
 .rejectButton {
-  background-color: #ff4444;
+  background-color: #ff4444; /* Mantido como antes, seletor mais específico que .actionButton */
+  color: white;
   &:hover { background-color: #cc0000; }
 }
 
-.cancelButton {
-  background-color: #95a5a6;
+.cancelButton { /* Este é o .cancelButton genérico para ações */
+  background-color: #95a5a6; /* Mantido como antes, seletor mais específico que .actionButton */
+  color: white;
   &:hover { background-color: #7f8c8d; }
 }
 
@@ -322,20 +332,20 @@
     }
   }
 
-  button {
+  button { /* Botão dentro do formulário de contato específico */
     padding: 0.75rem;
     border: none;
     border-radius: 4px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    background-color: #00aaff;
+    background-color: #3498db; /* Alteração anterior mantida */
     color: white;
     text-align: center;
     transition: background-color 0.2s ease;
 
     &:hover {
-      background-color: #0088cc;
+      background-color: #2980b9; /* Alteração anterior mantida */
     }
 
     &:active {
@@ -477,69 +487,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.modalContent {
-  background: #2c3e50;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-}
-
-.modalContent h2 {
-  color: white;
-  margin-bottom: 1rem;
-}
-
-.modalContent label {
-  display: block;
-  margin: 1rem 0;
-  color: white;
-}
-
-.modalContent input {
-  width: 100%;
-  padding: 0.75rem;
-  margin-top: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  background-color: #34495e;
-  color: white;
-}
-
-.modalActions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-
-.submitButton {
-  background-color: #00aaff;
-  &:hover {
-    background-color: #0088cc;
-  }
-}
-
-.cancelButton {
-  background-color: #95a5a6;
-  &:hover {
-    background-color: #7f8c8d;
-  }
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   z-index: 1000;
 }
 
@@ -590,10 +537,11 @@
 .modalActions {
   display: flex;
   justify-content: space-between;
+  margin-top: 1rem;
   gap: 1rem;
 }
 
-.submitButton {
+.submitButton { /* Botão de submissão do Modal (verde) */
   flex: 1;
   padding: 0.75rem;
   background: #27ae60;
@@ -609,10 +557,10 @@
   }
 }
 
-.cancelButton {
+.cancelButton.modalCancel { /* Renomeei para modalCancel para evitar conflito com .cancelButton genérico, se necessário */
   flex: 1;
   padding: 0.75rem;
-  background: #e74c3c;
+  background: #e74c3c; /* Vermelho */
   color: white;
   border: none;
   border-radius: 4px;
@@ -624,6 +572,7 @@
     background: #c0392b;
   }
 }
+
 
 @keyframes fadeIn {
   from {

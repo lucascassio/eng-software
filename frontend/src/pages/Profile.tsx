@@ -7,7 +7,7 @@ import styles from './profile.module.scss';
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {
-  sub: string; // ID do usuário
+  sub: string;
   name: string;
   email: string;
 }
