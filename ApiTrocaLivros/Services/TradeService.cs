@@ -86,7 +86,7 @@ namespace ApiTrocaLivros.Services
             {
                 throw new Exception("Erro ao salvar a troca no banco de dados.", ex);
             }
-
+            
             // Retorna a troca criada
             var fullTrade = await _context.Trades
                                 .Include(t => t.OfferedBook)
@@ -208,6 +208,17 @@ namespace ApiTrocaLivros.Services
 
                 trade.Status = status;
                 trade.UpdatedAt = DateTime.UtcNow;
+                
+                if (status == TradeStatus.Completed)
+                {
+                    // Marca os livros como não disponíveis
+                    trade.OfferedBook.IsAvaiable = false;
+                    trade.TargetBook.IsAvaiable = false;
+
+                    // Salva as alterações no banco
+                    _context.Books.Update(trade.OfferedBook);
+                    _context.Books.Update(trade.TargetBook);
+                }
 
                 await _context.SaveChangesAsync();
 
