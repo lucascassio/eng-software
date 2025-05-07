@@ -33,16 +33,29 @@
 }
 
 .logoutLink {
-  color: #3498db; /* Cor azul para o logout */
-  text-decoration: none;
-  font-weight: 400;
-  font-size: 1rem;
-  transition: color 0.3s ease;
+  color: #3498db; /* Cor azul para o texto */
+  text-decoration: none; /* Remove o sublinhado */
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0; /* Remove o padding extra que pode criar o quadrado */
+  border: none; /* Remove qualquer borda */
+  background: none; /* Remove qualquer fundo */
+  cursor: pointer; /* Torna o botão interativo */
+  transition: color 0.3s ease, transform 0.2s ease; /* Transições suaves para cor e transformação */
 
+  /* Efeito de hover */
   &:hover {
     color: #2980b9; /* Cor azul mais escura no hover */
+    transform: translateY(-2px); /* Leve elevação ao passar o mouse */
+  }
+
+  /* Efeito de foco */
+  &:focus {
+    outline: none; /* Remove o contorno padrão */
+    text-decoration: underline; /* Sublinha o texto quando em foco */
   }
 }
+
 .activeLink {
   @extend .link;
   color: white;
