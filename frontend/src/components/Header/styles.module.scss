@@ -21,7 +21,7 @@
 .rightLinks {
   display: flex;
   gap: 1rem;
-  align-items: center; /* Para garantir que o logo não afete a posição dos links à direita */
+  align-items: center;
 }
 
 .logoContainer {
@@ -77,4 +77,87 @@
     outline: none;
     text-decoration: underline;
   }
+}
+
+/* Estilos do ícone de notificação */
+.notifications {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.notificationIcon {
+  font-size: 1.5rem;
+  color: #ecf0f1;
+  margin-right: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.notificationIcon:hover {
+  transform: scale(1.2); /* Aumenta o ícone quando o mouse passa por cima */
+}
+
+.notificationBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  font-size: 0.8rem;
+  border-radius: 50%;
+  padding: 0.25rem 0.5rem;
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Estilos da lista de notificações */
+.notificationsList {
+  position: absolute;
+  top: 60px; /* Ajuste para ficar abaixo do header */
+  right: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  width: 250px;
+  border-radius: 8px;
+  z-index: 10;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.notificationItem {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.notificationItem:last-child {
+  border-bottom: none;
+}
+
+.markAsReadButton {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+  
+  &:hover {
+    background-color: #27ae60;
+  }
+}
+
+/* Estilos adicionais para a estrutura */
+.notificationItem p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.notificationsList p {
+  font-size: 1rem;
+  color:#7f8c8d;
 }
