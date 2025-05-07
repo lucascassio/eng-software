@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import styles from './styles.module.scss';
+import logo from '../../assets/logo.jpg';
 
 export function Header() {
   return (
@@ -31,6 +32,14 @@ export function Header() {
             Minhas Trocas
           </NavLink>
         </div>
+
+        <div className={styles.logoContainer}>
+          <a href="/">
+            <img src={logo} alt="Logo" className={styles.logo} />
+          </a>
+        </div>
+
+
         <div className={styles.rightLinks}>
           <NavLink
             to="/profile"
