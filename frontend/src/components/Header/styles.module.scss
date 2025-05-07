@@ -1,4 +1,6 @@
 .header {
+  display: flex;
+  align-items: center;
   background-color: #34495e;
   padding: 1rem 2rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -11,13 +13,29 @@
 }
 
 .leftLinks {
+  margin-right: auto;
   display: flex;
-  gap: 2rem; /* Define o espaçamento entre os links à esquerda */
+  gap: 1rem; /* Define o espaçamento entre os links à esquerda */
 }
 
 .rightLinks {
+  margin-left: auto;
   display: flex;
   gap: 1rem; /* Espaçamento entre os links à direita (se precisar adicionar mais no futuro) */
+}
+
+.logoContainer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  height: 50px;                  
+  object-fit: contain;           
 }
 
 .link {
