@@ -16,7 +16,7 @@ interface Notification {
   // tradeId: number;
 }
 
-// Função para buscar notificações (movida para fora para clareza, ou pode ser interna)
+// Função para buscar notificações
 const fetchNotifications = async (): Promise<Notification[]> => {
   const authToken = Cookies.get("authToken");
   if (!authToken) {
@@ -28,7 +28,8 @@ const fetchNotifications = async (): Promise<Notification[]> => {
     const response = await fetch("http://localhost:5185/api/notifications/get-notifications", {
       method: "GET",
       headers: {
-        "Authorization": Bearer ${authToken},
+        // CORRIGIDO: Uso de template literal com crases
+        "Authorization": `Bearer ${authToken}`,
       }
     });
 
@@ -36,7 +37,8 @@ const fetchNotifications = async (): Promise<Notification[]> => {
       const data = await response.json();
       return data as Notification[]; // Confia que 'data' corresponde à interface Notification
     } else {
-      console.error("Erro ao buscar notificações:", response.status, await response.text());
+      // CORRIGIDO: Uso de template literal com crases
+      console.error(`Erro ao buscar notificações: ${response.status}`, await response.text());
       return [];
     }
   } catch (error) {
@@ -65,16 +67,19 @@ export function Header() {
     }
 
     try {
-      const response = await fetch(http://localhost:5185/api/notifications/${notificationIdToMark}/mark-as-read, {
+      // CORRIGIDO: Uso de template literal com crases para a URL
+      const response = await fetch(`http://localhost:5185/api/notifications/${notificationIdToMark}/mark-as-read`, {
         method: "PUT", // Corrigido de POST para PUT
         headers: {
-          "Authorization": Bearer ${authToken},
+          // CORRIGIDO: Uso de template literal com crases
+          "Authorization": `Bearer ${authToken}`,
           // "Content-Type": "application/json", // Opcional para PUT sem corpo, mas boa prática
         },
       });
 
       if (response.ok) {
-        console.log(Notificação ${notificationIdToMark} marcada como lida);
+        // CORRIGIDO: Uso de template literal com crases
+        console.log(`Notificação ${notificationIdToMark} marcada como lida`);
         // Atualiza o estado local para refletir a mudança
         setNotifications(prevNotifications => {
           const updatedNotifications = prevNotifications.map(n =>
@@ -87,10 +92,12 @@ export function Header() {
         });
       } else {
         const errorBody = await response.text();
-        console.error(Erro ao marcar notificação ${notificationIdToMark} como lida: ${response.status} - ${errorBody});
+        // CORRIGIDO: Uso de template literal com crases
+        console.error(`Erro ao marcar notificação ${notificationIdToMark} como lida: ${response.status} - ${errorBody}`);
       }
     } catch (error) {
-        console.error(Falha na requisição ao marcar notificação ${notificationIdToMark} como lida:, error);
+        // CORRIGIDO: Uso de template literal com crases
+        console.error(`Falha na requisição ao marcar notificação ${notificationIdToMark} como lida:`, error);
     }
   };
 
@@ -110,13 +117,15 @@ export function Header() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": Bearer ${authToken},
+          // CORRIGIDO: Uso de template literal com crases
+          "Authorization": `Bearer ${authToken}`,
         },
       });
 
       if (!response.ok) {
         // Mesmo se o logout no servidor falhar, prossiga com o logout do cliente
-        console.warn(Falha ao fazer logout no servidor: ${response.status}. Prosseguindo com logout local.);
+        // CORRIGIDO: Uso de template literal com crases
+        console.warn(`Falha ao fazer logout no servidor: ${response.status}. Prosseguindo com logout local.`);
       }
     } catch (error) {
       console.error("Erro na requisição de logout:", error);
@@ -209,3 +218,4 @@ export function Header() {
       </nav>
     </header>
   );
+}
