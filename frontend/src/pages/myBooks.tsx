@@ -47,16 +47,18 @@ const MyBooks: React.FC = () => {
         const decoded = jwtDecode<JwtPayload>(token);
         const userId = Number(decoded.sub);
         const myBooks = await BookService.getBooksByUserId(userId);
+  
+        // Caso não haja livros, simplesmente mantém a lista vazia
         setBooks(myBooks);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar seus livros');
+        // Remove o erro do estado e permite exibir a tela sem nenhum livro
+        setBooks([]);
       } finally {
         setLoading(false);
       }
     };
     fetchMyBooks();
   }, []);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     setNewBookData(prev => ({

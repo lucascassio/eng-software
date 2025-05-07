@@ -45,7 +45,11 @@ const Feed: React.FC = () => {
         const booksData = await BookService.getAllBooks();
         setBooks(booksData || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar os livros');
+        if (err instanceof Error && err.message.includes('404')) {
+          setError('Ainda não há livros disponíveis.');
+        } else {
+          setError(err.message || 'Erro ao carregar os livros');
+        }
         console.error('[ERRO Feed] Falha ao buscar livros:', err);
       } finally {
         setLoading(false);
