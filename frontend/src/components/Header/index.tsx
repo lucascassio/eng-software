@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import styles from "./styles.module.scss";
-import logo from '../../assets/logo.jpg'; // Certifique-se que este caminho está correto
+import logo from '../../assets/logo.png'; // Certifique-se que este caminho está correto
 
 // Interface Notification corrigida para corresponder à estrutura de dados do backend
 // (assumindo que o backend serializa em camelCase: notificationId, isRead, createdAt)
