@@ -8,18 +8,20 @@
 
 .nav {
   display: flex;
-  justify-content: space-between; /* Adicionado para separar os links à esquerda e à direita */
+  justify-content: space-between;
   align-items: center;
+  width: 100%;
 }
 
 .leftLinks {
   display: flex;
-  gap: 2rem; /* Define o espaçamento entre os links à esquerda */
+  gap: 2rem;
 }
 
 .rightLinks {
   display: flex;
-  gap: 1rem; /* Espaçamento entre os links à direita (se precisar adicionar mais no futuro) */
+  gap: 1rem;
+  align-items: center; /* Para garantir que o logo não afete a posição dos links à direita */
 }
 
 .logoContainer {
@@ -32,8 +34,8 @@
 }
 
 .logo {
-  height: 50px;                  
-  object-fit: contain;           
+  height: 50px;
+  object-fit: contain;
 }
 
 .link {
@@ -53,4 +55,26 @@
   color: white;
   border-bottom: 2px solid white;
   padding-bottom: 0.25rem;
+}
+
+.logoutLink {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.1rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.3s ease, transform 0.2s ease;
+
+  &:hover {
+    color: #2980b9;
+    transform: translateY(-2px);
+  }
+
+  &:focus {
+    outline: none;
+    text-decoration: underline;
+  }
 }
