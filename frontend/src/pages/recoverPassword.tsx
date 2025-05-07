@@ -7,7 +7,6 @@ const RecoverPassword = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('E-mail digitado:', email);
-    // aqui vai a lógica de envio para o back futuramente
   };
 
   return (

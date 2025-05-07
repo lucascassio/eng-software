@@ -8,20 +8,20 @@
 
 .nav {
   display: flex;
-  justify-content: space-between; /* Adicionado para separar os links à esquerda e à direita */
+  justify-content: space-between;
   align-items: center;
 }
 
 .leftLinks {
   margin-right: auto;
   display: flex;
-  gap: 1rem; /* Define o espaçamento entre os links à esquerda */
+  gap: 1rem;
 }
 
 .rightLinks {
   margin-left: auto;
   display: flex;
-  gap: 1rem; /* Espaçamento entre os links à direita (se precisar adicionar mais no futuro) */
+  gap: 1rem;
 }
 
 .logoContainer {

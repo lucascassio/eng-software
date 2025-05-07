@@ -14,7 +14,7 @@ interface BookCardProps {
     isAvailable: boolean;
     ownerId: number;
     registrationDate: string;
-    coverImageUrl?: string; // ex.: "/images/uuid.jpg"
+    coverImageUrl?: string;
   };
 }
 
