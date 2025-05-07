@@ -15,20 +15,20 @@ Este projeto tem como objetivo facilitar a troca e o empréstimo de livros entre
 - **Lucas Cassio** - Desenvolvimento Back End   
 
 ### 🛠️ Tecnologias Utilizadas
-- Linguagens de Programação (LP)
-- Frontend: JavaScript (React.js)
+- Frontend: TypesScript (React.js)
 - Backend: C# (.NET)
 ### Banco de Dados (BD)
 - PostgreSQL
 ### Outras Tecnologias
 - GitHub para controle de versão e colaboração
-
+- Autenticação com Token JWT
+  
 ### 📋 Sprint Backlog
 
 Funcionalidades em desenvolvimento atual:
 
 - Como usuário, eu gostaria de me cadastrar e fazer login na plataforma.
-- omo usuário, eu gostaria de cadastrar um livro disponível para troca ou empréstimo.
+- Como usuário, eu gostaria de cadastrar um livro disponível para troca ou empréstimo.
 - Como usuário, eu gostaria de buscar livros por disciplina, autor ou título.
 - Como usuário, eu gostaria de visualizar o status de um livro.
 - Como usuário, eu gostaria de demonstrar interesse em um livro disponível.
