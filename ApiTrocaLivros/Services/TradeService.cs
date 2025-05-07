@@ -87,6 +87,20 @@ namespace ApiTrocaLivros.Services
                 throw new Exception("Erro ao salvar a troca no banco de dados.", ex);
             }
             
+            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            {
+                UserId = requesterId,  // Usuário que fez a solicitação de troca
+                Message = $"Você fez uma solicitação de troca! Aguardando a resposta.",
+                TradeId = trade.TradeID  // ID da troca
+            });
+            
+            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            {
+                UserId = targetBook.OwnerId,  // Dono do livro alvo
+                Message = $"Você recebeu uma solicitação de troca para o livro '{targetBook.Title}'.",
+                TradeId = trade.TradeID  // ID da troca
+            });
+            
             // Retorna a troca criada
             var fullTrade = await _context.Trades
                                 .Include(t => t.OfferedBook)
@@ -169,6 +183,17 @@ namespace ApiTrocaLivros.Services
                 .Include(t => t.Requester)
                 .FirstOrDefaultAsync(t => t.TradeID == trade.TradeID);
 
+            var targetBook = await _context.Books.FindAsync(trade.TargetBookId)
+                             ?? throw new InvalidOperationException(
+                                 $"Livro alvo (ID {trade.TargetBookId}) não encontrado.");
+            
+            await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+            {
+                UserId = targetBook.OwnerId,  // Dono do livro alvo
+                Message = $"Você aceitou a solicitação de troca para o livro '{targetBook.Title}'.",
+                TradeId = trade.TradeID  // ID da troca
+            });
+            
             return MapToDTO(fullTrade!);
         }
 
@@ -208,9 +233,39 @@ namespace ApiTrocaLivros.Services
 
                 trade.Status = status;
                 trade.UpdatedAt = DateTime.UtcNow;
-                
-                if (status == TradeStatus.Completed)
+
+                if (status == TradeStatus.Accepted)
                 {
+                    await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    {
+                        UserId = trade.TargetBook.OwnerId,  // Dono do livro alvo
+                        Message = $"Você aceitou a solicitação de troca para o livro '{trade.TargetBook.Title}'.",
+                        TradeId = trade.TradeID  // ID da troca
+                    });
+                
+                    await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    {
+                        UserId  = trade.RequesterId,
+                        Message = $"Sua solicitação de troca para o livro '{trade.TargetBook.Title}' foi aceita!",
+                        TradeId = trade.TradeID
+                    });
+                }
+                else if (status == TradeStatus.Completed)
+                {
+                    await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    {
+                        UserId = trade.RequesterId,
+                        Message = $"A troca foi concluída com sucesso! Você agora tem o livro solicitado. Converse com o dono do livro para realizar a troca.",
+                        TradeId = trade.TradeID  // ID da troca
+                    });
+                    
+                    await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    {
+                        UserId = trade.TargetBook.OwnerId,
+                        Message = $"A troca foi concluída com sucesso! Converse com o solicitante para realizar a troca.",
+                        TradeId = trade.TradeID  // ID da troca
+                    });
+                    
                     // Marca os livros como não disponíveis
                     trade.OfferedBook.IsAvaiable = false;
                     trade.TargetBook.IsAvaiable = false;
@@ -219,6 +274,25 @@ namespace ApiTrocaLivros.Services
                     _context.Books.Update(trade.OfferedBook);
                     _context.Books.Update(trade.TargetBook);
                 }
+                else if (status == TradeStatus.Rejected)
+                {
+                    await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    {
+                        UserId = trade.RequesterId,
+                        Message = $"Sua solicitação de troca foi recusada pelo dono do livro alvo.",
+                        TradeId = trade.TradeID  // ID da troca
+                    });
+                }
+                else if (status == TradeStatus.Cancelled)
+                {
+                    // Criar notificação para o solicitante informando que a troca foi cancelada
+                    await _notificationService.CreateNotification(new NotificationDTOs.NotificationRequestDTO
+                    {
+                        UserId = trade.TargetBook.OwnerId,
+                        Message = $"Essa solicitação de troca foi cancelada.",
+                        TradeId = trade.TradeID  // ID da troca
+                    });
+                } 
 
                 await _context.SaveChangesAsync();
 
